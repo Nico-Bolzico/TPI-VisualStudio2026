@@ -1,57 +1,64 @@
 using Domain.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace Data
 {
     public class MateriaRepository : IMateriaRepository
     {
-        private static readonly List<Materia> materias = new List<Materia>();
-        private static int nextId = 1;
+        private readonly TPIContext context;
 
-        public Task AddAsync(Materia materia)
+        public MateriaRepository(TPIContext context)
         {
-            // Simular auto-increment de ID
-            materia.SetId(nextId);
-            nextId++;
-
-            materias.Add(materia);
-            return Task.CompletedTask;
+            this.context = context;
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public async Task AddAsync(Materia materia)
         {
-            var materia = materias.FirstOrDefault(m => m.Id == id);
+            context.Materias.Add(materia);
+            await context.SaveChangesAsync();
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var materia = await context.Materias.FindAsync(id);
             if (materia != null)
             {
-                materias.Remove(materia);
-                return Task.FromResult(true);
+                context.Materias.Remove(materia);
+                await context.SaveChangesAsync();
+                return true;
             }
-            return Task.FromResult(false);
+            return false;
         }
 
-        public Task<Materia?> GetAsync(int id)
+        public async Task<Materia?> GetAsync(int id)
         {
-            return Task.FromResult(materias.FirstOrDefault(m => m.Id == id));
+            return await context.Materias
+                .FirstOrDefaultAsync(m => m.Id == id);
         }
 
-        public Task<IEnumerable<Materia>> GetAllAsync()
+        public async Task<IEnumerable<Materia>> GetAllAsync()
         {
-            return Task.FromResult<IEnumerable<Materia>>(materias.ToList());
+            return await context.Materias
+                .ToListAsync();
         }
 
-        public Task<bool> UpdateAsync(Materia materia)
+        public async Task<bool> UpdateAsync(Materia materia)
         {
-            var existing = materias.FirstOrDefault(m => m.Id == materia.Id);
-            if (existing == null)
-                return Task.FromResult(false);
+            var existingMateria = await context.Materias.FindAsync(materia.Id);
+            if (existingMateria != null)
+            {
 
-            existing.SetDescripcion(materia.Descripcion);
-            existing.SetIdPlan(materia.IdPlan);
-            existing.SetHoras(materia.HsSemanales, materia.HsTotales);
+                existingMateria.SetDescripcion(materia.Descripcion);
+                existingMateria.SetHoras(materia.HsSemanales, materia.HsTotales);
+                existingMateria.SetIdPlan(materia.IdPlan);
 
-            return Task.FromResult(true);
+                await context.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
 
-        public Task<IEnumerable<Materia>> GetByCriteriaAsync(MateriaCriteria criteria)
+        /*public Task<IEnumerable<Materia>> GetByCriteriaAsync(MateriaCriteria criteria)
         {
             string searchTerm = criteria.Texto.ToLower();
 
@@ -60,6 +67,6 @@ namespace Data
             ).OrderBy(m => m.Descripcion).ToList();
 
             return Task.FromResult(result);
-        }
+        }*/
     }
 }
