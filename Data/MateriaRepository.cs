@@ -57,16 +57,6 @@ namespace Data
             }
             return false;
         }
-
-        /*public Task<IEnumerable<Materia>> GetByCriteriaAsync(MateriaCriteria criteria)
-        {
-            string searchTerm = criteria.Texto.ToLower();
-
-            IEnumerable<Materia> result = materias.Where(m =>
-                m.Descripcion.ToLower().Contains(searchTerm)
-            ).OrderBy(m => m.Descripcion).ToList();
-
-            return Task.FromResult(result);
-        }*/
+     
     }
 }

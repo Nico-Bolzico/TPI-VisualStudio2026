@@ -91,21 +91,6 @@ namespace WebAPI
             .Produces(StatusCodes.Status404NotFound)
             .WithOpenApi();
 
-            app.MapGet("/materias/criteria", async (string texto, IMateriaService materiaService) =>
-            {
-                try
-                {
-                    var criteria = new MateriaCriteriaDTO { Texto = texto };
-                    var materias = await materiaService.GetByCriteriaAsync(criteria);
-                    return Results.Ok(materias);
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
-            })
-            .WithName("GetMateriasByCriteria")
-            .WithOpenApi();
         }
     }
 }

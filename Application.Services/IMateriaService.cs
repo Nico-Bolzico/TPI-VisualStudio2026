@@ -9,6 +9,5 @@ namespace Application.Services
         Task<MateriaDTO?> GetAsync(int id);
         Task<IEnumerable<MateriaDTO>> GetAllAsync();
         Task<bool> UpdateAsync(MateriaDTO dto);
-        Task<IEnumerable<MateriaDTO>> GetByCriteriaAsync(MateriaCriteriaDTO criteriaDTO);
     }
 }

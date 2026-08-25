@@ -1,12 +1,17 @@
-using WebAPI;
 using Application.Services;
 using Data;
+using Microsoft.EntityFrameworkCore;
+using WebAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add Entity Framework Context
+builder.Services.AddDbContext<TPIContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("TPIConnection")));
 
 // Add Dependency Injection
 builder.Services.AddScoped<IPersonaRepository, PersonaRepository>();
