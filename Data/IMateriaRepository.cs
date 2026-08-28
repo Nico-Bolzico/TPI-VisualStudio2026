@@ -9,5 +9,6 @@ namespace Data
         Task<Materia?> GetAsync(int id);
         Task<IEnumerable<Materia>> GetAllAsync();
         Task<bool> UpdateAsync(Materia materia);
+        Task<IEnumerable<Materia>> GetByCriteriaAsync(MateriaCriteria criteria);
     }
 }

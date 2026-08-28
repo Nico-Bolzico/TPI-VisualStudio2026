@@ -16,7 +16,6 @@ namespace Data
 
         public TPIContext(DbContextOptions<TPIContext> options) : base(options)
         {
-            this.Database.EnsureCreated();
         }
     }
 }

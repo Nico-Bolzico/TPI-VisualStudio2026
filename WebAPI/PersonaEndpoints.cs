@@ -7,7 +7,24 @@ namespace WebAPI
     {
         public static void MapPersonaEndpoints(this WebApplication app)
         {
-            app.MapGet("/personas/{id}", async (int id, IPersonaService personaService) =>
+            app.MapGet("/personas/criteria", async (string texto, IPersonaService personaService) =>
+            {
+                try
+                {
+                    var criteria = new PersonaCriteriaDTO { Texto = texto };
+                    var personas = await personaService.GetByCriteriaAsync(criteria);
+                    return Results.Ok(personas);
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(new { error = ex.Message });
+                }
+            })
+            .WithName("GetPersonasByCriteria")
+            .Produces<List<PersonaDTO>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .WithOpenApi();
+            app.MapGet("/personas/{id:int}", async (int id, IPersonaService personaService) =>
             {
                 PersonaDTO? dto = await personaService.GetAsync(id);
 
@@ -75,7 +92,7 @@ namespace WebAPI
             .Produces(StatusCodes.Status400BadRequest)
             .WithOpenApi();
 
-            app.MapDelete("/personas/{id}", async (int id, IPersonaService personaService) =>
+            app.MapDelete("/personas/{id:int}", async (int id, IPersonaService personaService) =>
             {
                 var deleted = await personaService.DeleteAsync(id);
 
@@ -89,22 +106,6 @@ namespace WebAPI
             .WithName("DeletePersona")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithOpenApi();
-
-            app.MapGet("/personas/criteria", async (string texto, IPersonaService personaService) =>
-            {
-                try
-                {
-                    var criteria = new PersonaCriteriaDTO { Texto = texto };
-                    var personas = await personaService.GetByCriteriaAsync(criteria);
-                    return Results.Ok(personas);
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
-            })
-            .WithName("GetPersonasByCriteria")
             .WithOpenApi();
         }
     }

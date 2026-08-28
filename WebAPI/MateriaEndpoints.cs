@@ -7,7 +7,25 @@ namespace WebAPI
     {
         public static void MapMateriaEndpoints(this WebApplication app)
         {
-            app.MapGet("/materias/{id}", async (int id, IMateriaService materiaService) =>
+            app.MapGet("/materias/criteria", async (string texto, IMateriaService materiaService) =>
+            {
+                try
+                {
+                    var criteria = new MateriaCriteriaDTO { Texto = texto };
+                    var materias = await materiaService.GetByCriteriaAsync(criteria);
+                    return Results.Ok(materias);
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(new { error = ex.Message });
+                }
+            })
+            .WithName("GetMateriasByCriteria")
+            .Produces<List<MateriaDTO>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .WithOpenApi();
+
+            app.MapGet("/materias/{id:int}", async (int id, IMateriaService materiaService) =>
             {
                 MateriaDTO? dto = await materiaService.GetAsync(id);
 
@@ -75,7 +93,7 @@ namespace WebAPI
             .Produces(StatusCodes.Status400BadRequest)
             .WithOpenApi();
 
-            app.MapDelete("/materias/{id}", async (int id, IMateriaService materiaService) =>
+            app.MapDelete("/materias/{id:int}", async (int id, IMateriaService materiaService) =>
             {
                 var deleted = await materiaService.DeleteAsync(id);
 

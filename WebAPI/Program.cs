@@ -21,6 +21,13 @@ builder.Services.AddScoped<IMateriaService, MateriaService>();
 
 var app = builder.Build();
 
+// Makes sure the DataBase exists
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<TPIContext>();
+    context.Database.EnsureCreated();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

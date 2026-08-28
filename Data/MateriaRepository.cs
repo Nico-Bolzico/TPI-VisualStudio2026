@@ -41,6 +41,15 @@ namespace Data
             return await context.Materias
                 .ToListAsync();
         }
+        public async Task<IEnumerable<Materia>> GetByCriteriaAsync(MateriaCriteria criteria)
+        {
+            string searchPattern = $"%{criteria.Texto}%";
+
+            return await context.Materias
+                .Where(m => EF.Functions.Like(m.Descripcion, searchPattern))
+                .OrderBy(m => m.Descripcion)
+                .ToListAsync();
+        }
 
         public async Task<bool> UpdateAsync(Materia materia)
         {

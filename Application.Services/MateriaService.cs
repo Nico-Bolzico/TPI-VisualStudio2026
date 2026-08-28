@@ -43,6 +43,12 @@ namespace Application.Services
             var materias = await materiaRepository.GetAllAsync();
             return materias.Select(ToDto).ToList();
         }
+        public async Task<IEnumerable<MateriaDTO>> GetByCriteriaAsync(MateriaCriteriaDTO criteriaDTO)
+        {
+            var criteria = new MateriaCriteria(criteriaDTO.Texto);
+            var materias = await materiaRepository.GetByCriteriaAsync(criteria);
+            return materias.Select(ToDto);
+        }
 
         public async Task<bool> UpdateAsync(MateriaDTO dto)
         {

@@ -8,6 +8,7 @@ namespace Application.Services
         Task<bool> DeleteAsync(int id);
         Task<MateriaDTO?> GetAsync(int id);
         Task<IEnumerable<MateriaDTO>> GetAllAsync();
+        Task<IEnumerable<MateriaDTO>> GetByCriteriaAsync(MateriaCriteriaDTO criteriaDTO);
         Task<bool> UpdateAsync(MateriaDTO dto);
     }
 }
