@@ -13,7 +13,7 @@ namespace Data
     {
         public DbSet<Materia> Materias { get; set; }
         public DbSet<Persona> Personas { get; set; }
-
+        public DbSet<Usuario> Usuarios { get; set; }
         public TPIContext(DbContextOptions<TPIContext> options) : base(options)
         {
         }
