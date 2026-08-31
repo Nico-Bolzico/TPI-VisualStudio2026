@@ -26,6 +26,34 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<TPIContext>();
     context.Database.EnsureCreated();
+
+    if (!context.Usuarios.Any())
+    {
+        var personaAdmin = new Domain.Model.Persona(
+            id: 0,
+            legajo: 1,
+            nombre: "Administrador",
+            apellido: "Sistema",
+            direccion: "Sin especificar",
+            email: "admin@academia.edu",
+            telefono: "Sin especificar",
+            fechaNacimiento: new DateTime(1990, 1, 1),
+            tipoPersona: Domain.Model.TipoPersona.Profesor,
+            idPlan: null);
+
+        context.Personas.Add(personaAdmin);
+        context.SaveChanges();
+
+        var passwordHash = Application.Services.PasswordHasher.Hash("admin123");
+        context.Usuarios.Add(new Domain.Model.Usuario(
+            id: 0,
+            nombreUsuario: "admin",
+            passwordHash: passwordHash,
+            habilitado: true,
+            cambiaClave: false,
+            idPersona: personaAdmin.Id));
+        context.SaveChanges();
+    }
 }
 
 // Configure the HTTP request pipeline.
