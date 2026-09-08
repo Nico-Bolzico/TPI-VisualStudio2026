@@ -60,4 +60,9 @@ public partial class FormLogin : Form
             btnIngresar.Enabled = true;
         }
     }
+
+    private void label3_Click(object sender, EventArgs e)
+    {
+
+    }
 }

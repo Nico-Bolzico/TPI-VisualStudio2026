@@ -34,46 +34,50 @@
             txtPassword = new TextBox();
             btnIngresar = new Button();
             lblError = new Label();
+            usuarioPrecargado = new Label();
             SuspendLayout();
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(64, 198);
+            label1.Location = new Point(56, 148);
             label1.Name = "label1";
-            label1.Size = new Size(59, 20);
+            label1.Size = new Size(47, 15);
             label1.TabIndex = 0;
             label1.Text = "Usuario";
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(64, 273);
+            label2.Location = new Point(56, 205);
             label2.Name = "label2";
-            label2.Size = new Size(83, 20);
+            label2.Size = new Size(67, 15);
             label2.TabIndex = 1;
             label2.Text = "Contraseña";
             // 
             // txtUsuario
             // 
-            txtUsuario.Location = new Point(64, 221);
+            txtUsuario.Location = new Point(56, 166);
+            txtUsuario.Margin = new Padding(3, 2, 3, 2);
             txtUsuario.Name = "txtUsuario";
-            txtUsuario.Size = new Size(248, 27);
+            txtUsuario.Size = new Size(218, 23);
             txtUsuario.TabIndex = 2;
             // 
             // txtPassword
             // 
-            txtPassword.Location = new Point(64, 296);
+            txtPassword.Location = new Point(56, 222);
+            txtPassword.Margin = new Padding(3, 2, 3, 2);
             txtPassword.Name = "txtPassword";
             txtPassword.PasswordChar = '*';
-            txtPassword.Size = new Size(248, 27);
+            txtPassword.Size = new Size(218, 23);
             txtPassword.TabIndex = 3;
             // 
             // btnIngresar
             // 
-            btnIngresar.Location = new Point(64, 343);
+            btnIngresar.Location = new Point(56, 257);
+            btnIngresar.Margin = new Padding(3, 2, 3, 2);
             btnIngresar.Name = "btnIngresar";
-            btnIngresar.Size = new Size(94, 29);
+            btnIngresar.Size = new Size(82, 22);
             btnIngresar.TabIndex = 4;
             btnIngresar.Text = "Ingresar";
             btnIngresar.UseVisualStyleBackColor = true;
@@ -83,22 +87,34 @@
             // 
             lblError.AutoSize = true;
             lblError.ForeColor = Color.Firebrick;
-            lblError.Location = new Point(395, 228);
+            lblError.Location = new Point(346, 171);
             lblError.Name = "lblError";
-            lblError.Size = new Size(0, 20);
+            lblError.Size = new Size(0, 15);
             lblError.TabIndex = 5;
+            // 
+            // usuarioPrecargado
+            // 
+            usuarioPrecargado.AutoSize = true;
+            usuarioPrecargado.Location = new Point(346, 175);
+            usuarioPrecargado.Name = "usuarioPrecargado";
+            usuarioPrecargado.Size = new Size(156, 45);
+            usuarioPrecargado.TabIndex = 6;
+            usuarioPrecargado.Text = "Usuario precargado en base:\r\nUsuario: admin\r\nContraseña: admin123";
+            usuarioPrecargado.Click += label3_Click;
             // 
             // FormLogin
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(700, 338);
+            Controls.Add(usuarioPrecargado);
             Controls.Add(lblError);
             Controls.Add(btnIngresar);
             Controls.Add(txtPassword);
             Controls.Add(txtUsuario);
             Controls.Add(label2);
             Controls.Add(label1);
+            Margin = new Padding(3, 2, 3, 2);
             Name = "FormLogin";
             Text = "Form1";
             ResumeLayout(false);
@@ -113,5 +129,6 @@
         private TextBox txtPassword;
         private Button btnIngresar;
         private Label lblError;
+        private Label usuarioPrecargado;
     }
 }
