@@ -1,18 +1,21 @@
+using System.Net;
+using System.Net.Http.Json;
+using DTOs;
+
 namespace WinForms;
 
 public partial class FormLogin : Form
 {
-    // Credenciales fijas
-    // A futuro reemplazar por una llamada a la Web API (endpoint POST /login)
-    private const string UsuarioValido = "admin";
-    private const string PasswordValido = "admin123";
-
     public FormLogin()
     {
         InitializeComponent();
     }
 
-    private void btnIngresar_Click(object sender, EventArgs e)
+    private void FormLogin_Load(object sender, EventArgs e)
+    {
+    }
+
+    private async void btnIngresar_Click(object sender, EventArgs e)
     {
         lblError.Text = string.Empty;
 
@@ -22,19 +25,39 @@ public partial class FormLogin : Form
             return;
         }
 
-        bool credencialesValidas =
-            txtUsuario.Text.Trim() == UsuarioValido &&
-            txtPassword.Text == PasswordValido;
-
-        if (!credencialesValidas)
+        var request = new LoginRequestDTO
         {
-            lblError.Text = "Usuario o contraseña incorrectos.";
-            return;
+            NombreUsuario = txtUsuario.Text.Trim(),
+            Password = txtPassword.Text
+        };
+
+        btnIngresar.Enabled = false;
+
+        try
+        {
+            var response = await ApiSession.HttpClient.PostAsJsonAsync("login", request);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                lblError.Text = "Usuario o contraseña incorrectos.";
+                return;
+            }
+
+            response.EnsureSuccessStatusCode();
+
+            var resultado = await response.Content.ReadFromJsonAsync<LoginResponseDTO>();
+            ApiSession.IniciarSesion(resultado!);
+
+            this.DialogResult = DialogResult.OK;
+            this.Close();
         }
-
-        ApiSession.UsuarioActual = txtUsuario.Text.Trim();
-
-        this.DialogResult = DialogResult.OK;
-        this.Close();
+        catch (HttpRequestException ex)
+        {
+            lblError.Text = $"No se pudo conectar con el servidor: {ex.Message}";
+        }
+        finally
+        {
+            btnIngresar.Enabled = true;
+        }
     }
 }

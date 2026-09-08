@@ -23,6 +23,7 @@ namespace WebAPI
             .WithName("GetMateriasByCriteria")
             .Produces<List<MateriaDTO>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
+            .RequireAuthorization("Materias.Consultar")
             .WithOpenApi();
 
             app.MapGet("/materias/{id:int}", async (int id, IMateriaService materiaService) =>
@@ -39,6 +40,7 @@ namespace WebAPI
             .WithName("GetMateria")
             .Produces<MateriaDTO>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization("Materias.Consultar")
             .WithOpenApi();
 
             app.MapGet("/materias", async (IMateriaService materiaService) =>
@@ -49,6 +51,7 @@ namespace WebAPI
             })
             .WithName("GetAllMaterias")
             .Produces<List<MateriaDTO>>(StatusCodes.Status200OK)
+            .RequireAuthorization("Materias.Consultar")
             .WithOpenApi();
 
             app.MapPost("/materias", async (MateriaDTO dto, IMateriaService materiaService) =>
@@ -67,6 +70,7 @@ namespace WebAPI
             .WithName("AddMateria")
             .Produces<MateriaDTO>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
+            .RequireAuthorization("Materias.Alta")
             .WithOpenApi();
 
             app.MapPut("/materias", async (MateriaDTO dto, IMateriaService materiaService) =>
@@ -91,6 +95,7 @@ namespace WebAPI
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
+            .RequireAuthorization("Materias.Modificar")
             .WithOpenApi();
 
             app.MapDelete("/materias/{id:int}", async (int id, IMateriaService materiaService) =>
@@ -107,6 +112,7 @@ namespace WebAPI
             .WithName("DeleteMateria")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization("Materias.Baja")
             .WithOpenApi();
 
         }

@@ -23,6 +23,7 @@ namespace WebAPI
             .WithName("GetPersonasByCriteria")
             .Produces<List<PersonaDTO>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
+            .RequireAuthorization("Personas.Consultar")
             .WithOpenApi();
             app.MapGet("/personas/{id:int}", async (int id, IPersonaService personaService) =>
             {
@@ -38,6 +39,7 @@ namespace WebAPI
             .WithName("GetPersona")
             .Produces<PersonaDTO>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization("Personas.Consultar")
             .WithOpenApi();
 
             app.MapGet("/personas", async (IPersonaService personaService) =>
@@ -48,6 +50,7 @@ namespace WebAPI
             })
             .WithName("GetAllPersonas")
             .Produces<List<PersonaDTO>>(StatusCodes.Status200OK)
+            .RequireAuthorization("Personas.Consultar")
             .WithOpenApi();
 
             app.MapPost("/personas", async (PersonaDTO dto, IPersonaService personaService) =>
@@ -66,6 +69,7 @@ namespace WebAPI
             .WithName("AddPersona")
             .Produces<PersonaDTO>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
+            .RequireAuthorization("Personas.Alta")
             .WithOpenApi();
 
             app.MapPut("/personas", async (PersonaDTO dto, IPersonaService personaService) =>
@@ -90,6 +94,7 @@ namespace WebAPI
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
+            .RequireAuthorization("Personas.Modificar")
             .WithOpenApi();
 
             app.MapDelete("/personas/{id:int}", async (int id, IPersonaService personaService) =>
@@ -106,6 +111,7 @@ namespace WebAPI
             .WithName("DeletePersona")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization("Personas.Baja")
             .WithOpenApi();
         }
     }

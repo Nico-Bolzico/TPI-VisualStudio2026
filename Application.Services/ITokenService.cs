@@ -7,8 +7,8 @@ using DTOs;
 
 namespace Application.Services
 {
-    public interface IUsuarioService
+    public interface ITokenService
     {
-        Task<LoginResponseDTO?> LoginAsync(LoginRequestDTO dto);
+        string GenerarToken(UsuarioDTO usuario);
     }
 }
