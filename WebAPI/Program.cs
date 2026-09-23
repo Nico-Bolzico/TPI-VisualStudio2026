@@ -1,4 +1,4 @@
-using Application.Services;
+锘縰sing Application.Services;
 using Data;
 using Microsoft.EntityFrameworkCore;
 using WebAPI;
@@ -26,8 +26,10 @@ builder.Services.AddScoped<IMateriaService, MateriaService>();
 builder.Services.AddScoped<IModuloUsuarioRepository, ModuloUsuarioRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthorizationHandler, PermisoAuthorizationHandler>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
-// Autenticaci髇 JWT
+// Autenticaci贸n JWT
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -44,7 +46,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Pol韙icas de autorizaci髇 por m骴ulo + acci髇
+// Pol铆ticas de autorizaci贸n por m贸dulo + acci贸n
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("Personas.Alta", p => p.Requirements.Add(new PermisoRequirement("Personas", "Alta")))
     .AddPolicy("Personas.Baja", p => p.Requirements.Add(new PermisoRequirement("Personas", "Baja")))
@@ -129,3 +131,4 @@ app.MapMateriaEndpoints();
 app.MapUsuarioEndpoints();
 
 app.Run();
+
