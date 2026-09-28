@@ -1,0 +1,56 @@
+@implements IDisposable
+@inject APISession Session
+@inject NavigationManager Navigation
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">TPI Academia</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Inicio
+            </NavLink>
+        </div>
+
+        @if (Session.EstaAutenticado)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="personas">
+                    <span class="bi bi-people-fill" aria-hidden="true"></span> Personas
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="materias">
+                    <span class="bi bi-book-fill" aria-hidden="true"></span> Materias
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3 mt-4 text-white-50 small">
+                Conectado como:
+                <div class="fw-bold text-white text-truncate">@Session.UsuarioActual?.NombreUsuario</div>
+            </div>
+        }
+    </nav>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Suscribirse a cambios en la sesión para que la navbar se actualice sola al loguearse/desloguearse
+        Session.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        Session.OnChange -= StateHasChanged;
+    }
+}
+
+

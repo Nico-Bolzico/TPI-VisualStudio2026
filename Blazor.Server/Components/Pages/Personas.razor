@@ -1,0 +1,382 @@
+@page "/personas"
+@inject APISession Session
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Personas - TPI Academia</PageTitle>
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Gestión de Personas</h3>
+        @if (Session.TienePermiso("Personas", "Alta"))
+        {
+            <button class="btn btn-primary" @onclick="AbrirModalAlta">
+                + Nueva Persona
+            </button>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensajeExito))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @mensajeExito
+            <button type="button" class="btn-close" @onclick="() => mensajeExito = null"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(mensajeError))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @mensajeError
+            <button type="button" class="btn-close" @onclick="() => mensajeError = null"></button>
+        </div>
+    }
+
+    <!-- Búsqueda -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-6 col-lg-4">
+                    <input type="text" class="form-control" placeholder="Buscar por nombre, apellido, legajo o email..."
+                           @bind="textoBusqueda" />
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-secondary" @onclick="BuscarAsync">Buscar</button>
+                    <button class="btn btn-link text-decoration-none" @onclick="MostrarTodosAsync">Mostrar todos</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grilla -->
+    @if (cargando)
+    {
+        <p class="text-muted py-3">Cargando personas...</p>
+    }
+    else if (personas == null || !personas.Any())
+    {
+        <div class="alert alert-warning">
+            No se encontraron personas registradas.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive shadow-sm">
+            <table class="table table-striped table-hover table-bordered align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 90px;">Legajo</th>
+                        <th>Apellido y Nombre</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Tipo</th>
+                        <th>Plan</th>
+                        <th style="width: 170px;" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in personas)
+                    {
+                        <tr>
+                            <td><strong>@p.Legajo</strong></td>
+                            <td>@p.Apellido, @p.Nombre</td>
+                            <td>@p.Email</td>
+                            <td>@p.Telefono</td>
+                            <td>
+                                @if (p.TipoPersona == "Alumno")
+                                {
+                                    <span class="badge bg-info text-dark">Alumno</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@p.TipoPersona</span>
+                                }
+                            </td>
+                            <td>@(p.IdPlan.HasValue && p.IdPlan.Value > 0 ? p.IdPlan.Value.ToString() : "-")</td>
+                            <td class="text-center">
+                                @if (Session.TienePermiso("Personas", "Modificar"))
+                                {
+                                    <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => AbrirModalModificar(p)">
+                                        Editar
+                                    </button>
+                                }
+                                @if (Session.TienePermiso("Personas", "Baja"))
+                                {
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => EliminarAsync(p)">
+                                        Eliminar
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- ABM -->
+@if (mostrarModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">@(esModificacion ? "Modificar Persona" : "Nueva Persona")</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CerrarModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(mensajeErrorModal))
+                    {
+                        <div class="alert alert-danger py-2">@mensajeErrorModal</div>
+                    }
+
+                    <div class="row g-2">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Legajo *</label>
+                            <input type="number" class="form-control" @bind="personaActual.Legajo" />
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Tipo Persona *</label>
+                            <select class="form-select" @bind="personaActual.TipoPersona">
+                                <option value="Alumno">Alumno</option>
+                                <option value="Profesor">Profesor</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Nombre *</label>
+                            <input type="text" class="form-control" @bind="personaActual.Nombre" />
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Apellido *</label>
+                            <input type="text" class="form-control" @bind="personaActual.Apellido" />
+                        </div>
+                        <div class="col-12 mb-2">
+                            <label class="form-label small fw-bold">Email *</label>
+                            <input type="email" class="form-control" @bind="personaActual.Email" />
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Dirección</label>
+                            <input type="text" class="form-control" @bind="personaActual.Direccion" />
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Teléfono</label>
+                            <input type="text" class="form-control" @bind="personaActual.Telefono" />
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Fecha Nacimiento</label>
+                            <input type="date" class="form-control" @bind="personaActual.FechaNacimiento" />
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Id Plan @(personaActual.TipoPersona == "Alumno" ? "(Obligatorio)" : "(Opcional)")</label>
+                            <input type="number" class="form-control" @bind="personaActual.IdPlan" disabled="@(personaActual.TipoPersona != "Alumno")" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarAsync">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<PersonaDTO>? personas;
+    private PersonaDTO personaActual = new();
+    private string textoBusqueda = string.Empty;
+    private bool cargando = true;
+    private bool mostrarModal = false;
+    private bool esModificacion = false;
+    private string? mensajeExito;
+    private string? mensajeError;
+    private string? mensajeErrorModal;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.EstaAutenticado)
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        await CargarGrillaAsync();
+    }
+
+    private async Task CargarGrillaAsync()
+    {
+        try
+        {
+            cargando = true;
+            mensajeError = null;
+
+            var resultado = await Session.HttpClient.GetFromJsonAsync<IEnumerable<PersonaDTO>>("personas");
+            personas = resultado?.ToList() ?? new List<PersonaDTO>();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al cargar personas: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task BuscarAsync()
+    {
+        if (string.IsNullOrWhiteSpace(textoBusqueda))
+        {
+            await CargarGrillaAsync();
+            return;
+        }
+
+        try
+        {
+            cargando = true;
+            string textoCodificado = Uri.EscapeDataString(textoBusqueda.Trim());
+            var resultado = await Session.HttpClient.GetFromJsonAsync<IEnumerable<PersonaDTO>>($"personas/criteria?texto={textoCodificado}");
+            personas = resultado?.ToList() ?? new List<PersonaDTO>();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error en la búsqueda: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task MostrarTodosAsync()
+    {
+        textoBusqueda = string.Empty;
+        await CargarGrillaAsync();
+    }
+
+
+    private void AbrirModalAlta()
+    {
+        esModificacion = false;
+        mensajeErrorModal = null;
+        personaActual = new PersonaDTO
+        {
+            FechaNacimiento = new DateTime(2000, 1, 1),
+            TipoPersona = "Alumno",
+            IdPlan = 1
+        };
+        mostrarModal = true;
+    }
+
+    private void AbrirModalModificar(PersonaDTO persona)
+    {
+        esModificacion = true;
+        mensajeErrorModal = null;
+        personaActual = new PersonaDTO
+        {
+            Id = persona.Id,
+            Legajo = persona.Legajo,
+            Nombre = persona.Nombre,
+            Apellido = persona.Apellido,
+            Email = persona.Email,
+            Direccion = persona.Direccion,
+            Telefono = persona.Telefono,
+            FechaNacimiento = persona.FechaNacimiento,
+            TipoPersona = persona.TipoPersona,
+            IdPlan = persona.IdPlan
+        };
+        mostrarModal = true;
+    }
+
+    private void CerrarModal()
+    {
+        mostrarModal = false;
+        mensajeErrorModal = null;
+    }
+
+    private async Task GuardarAsync()
+    {
+        mensajeErrorModal = null;
+
+        if (personaActual.Legajo <= 0)
+        {
+            mensajeErrorModal = "El legajo debe ser mayor a 0.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(personaActual.Nombre) || string.IsNullOrWhiteSpace(personaActual.Apellido))
+        {
+            mensajeErrorModal = "Nombre y Apellido son obligatorios.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(personaActual.Email))
+        {
+            mensajeErrorModal = "El Email es obligatorio.";
+            return;
+        }
+
+        if (personaActual.TipoPersona == "Alumno" && (!personaActual.IdPlan.HasValue || personaActual.IdPlan.Value <= 0))
+        {
+            mensajeErrorModal = "Un Alumno debe tener un Id de Plan válido.";
+            return;
+        }
+
+        try
+        {
+            HttpResponseMessage response;
+
+            if (esModificacion)
+            {
+                response = await Session.HttpClient.PutAsJsonAsync("personas", personaActual);
+            }
+            else
+            {
+                response = await Session.HttpClient.PostAsJsonAsync("personas", personaActual);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensajeErrorModal = $"No se pudo guardar: {error}";
+                return;
+            }
+
+            mostrarModal = false;
+            mensajeExito = esModificacion ? "Persona modificada con éxito." : "Persona agregada con éxito.";
+            await CargarGrillaAsync();
+        }
+        catch (Exception ex)
+        {
+            mensajeErrorModal = $"Error al guardar: {ex.Message}";
+        }
+    }
+
+    private async Task EliminarAsync(PersonaDTO persona)
+    {
+        bool confirma = await JS.InvokeAsync<bool>("confirm", 
+            $"¿Está seguro de que desea eliminar a {persona.Apellido}, {persona.Nombre}?");
+
+        if (!confirma) return;
+
+        try
+        {
+            var response = await Session.HttpClient.DeleteAsync($"personas/{persona.Id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensajeError = $"No se pudo eliminar: {error}";
+                return;
+            }
+
+            mensajeExito = "Persona eliminada con éxito.";
+            await CargarGrillaAsync();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al eliminar: {ex.Message}";
+        }
+    }
+}

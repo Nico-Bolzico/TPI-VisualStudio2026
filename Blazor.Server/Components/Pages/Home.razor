@@ -1,0 +1,150 @@
+@page "/"
+@implements IDisposable
+@inject APISession Session
+
+<PageTitle>Inicio - TPI Academia</PageTitle>
+
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <h2>Sistema de Gestión Académica (SGA)</h2>
+    </div>
+
+    @if (Session.EstaAutenticado)
+    {
+        <div class="alert alert-success shadow-sm">
+            <h5 class="alert-heading">¡Sesión iniciada con éxito!</h5>
+            <p class="mb-0">
+                Bienvenido, <strong>@Session.UsuarioActual?.Nombre @Session.UsuarioActual?.Apellido</strong> 
+                (Usuario: <code>@Session.UsuarioActual?.NombreUsuario</code>).
+            </p>
+        </div>
+
+        <div class="row g-3 mt-2">
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Gestión de Personas</h5>
+                        <a href="personas" class="btn btn-primary">Ir a Personas</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Gestión de Materias</h5>
+                        <a href="materias" class="btn btn-primary">Ir a Materias</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-top text-end">
+            <button class="btn btn-danger" @onclick="CerrarSesion">
+                Cerrar Sesión
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="row justify-content-center mt-3">
+            <div class="col-md-6 col-lg-5">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white text-center py-3">
+                        <h4 class="mb-0">Iniciar Sesión</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert alert-info py-2 small mb-3">
+                            <strong>Usuario precargado en base:</strong><br />
+                            Usuario: <code>admin</code><br />
+                            Contraseña: <code>admin123</code>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Nombre de Usuario</label>
+                            <input type="text" class="form-control" @bind="request.NombreUsuario" placeholder="Ej: admin" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Contraseña</label>
+                            <input type="password" class="form-control" @bind="request.Password" placeholder="••••••••" />
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(mensajeError))
+                        {
+                            <div class="alert alert-danger py-2" role="alert">
+                                @mensajeError
+                            </div>
+                        }
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button class="btn btn-primary" @onclick="IngresarAsync">
+                                Ingresar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private LoginRequestDTO request = new();
+    private string? mensajeError;
+
+    protected override void OnInitialized()
+    {
+        Session.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        Session.OnChange -= StateHasChanged;
+    }
+
+    private async Task IngresarAsync()
+    {
+        mensajeError = null;
+
+        if (string.IsNullOrWhiteSpace(request.NombreUsuario) || string.IsNullOrWhiteSpace(request.Password))
+        {
+            mensajeError = "Debe ingresar usuario y contraseña.";
+            return;
+        }
+
+        try
+        {
+            var response = await Session.HttpClient.PostAsJsonAsync("login", request);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                mensajeError = "Usuario o contraseña incorrectos.";
+                return;
+            }
+
+            response.EnsureSuccessStatusCode();
+
+            var resultado = await response.Content.ReadFromJsonAsync<LoginResponseDTO>();
+
+            if (resultado != null)
+            {
+                Session.IniciarSesion(resultado);
+                request = new();
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            mensajeError = $"No se pudo conectar con la API: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error inesperado: {ex.Message}";
+        }
+    }
+
+
+    private void CerrarSesion()
+    {
+        Session.CerrarSesion();
+    }
+}

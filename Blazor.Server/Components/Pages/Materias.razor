@@ -1,0 +1,344 @@
+@page "/materias"
+@inject APISession Session
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Materias - TPI Academia</PageTitle>
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Gestión de Materias</h3>
+        @if (Session.TienePermiso("Materias", "Alta"))
+        {
+            <button class="btn btn-primary" @onclick="AbrirModalAlta">
+                + Nueva Materia
+            </button>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensajeExito))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @mensajeExito
+            <button type="button" class="btn-close" @onclick="() => mensajeExito = null"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(mensajeError))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @mensajeError
+            <button type="button" class="btn-close" @onclick="() => mensajeError = null"></button>
+        </div>
+    }
+
+    <!-- Búsqueda -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-6 col-lg-4">
+                    <input type="text" class="form-control" placeholder="Buscar por descripción de materia..."
+                           @bind="textoBusqueda" />
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-secondary" @onclick="BuscarAsync">Buscar</button>
+                    <button class="btn btn-link text-decoration-none" @onclick="MostrarTodosAsync">Mostrar todas</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grilla -->
+    @if (cargando)
+    {
+        <p class="text-muted py-3">Cargando materias...</p>
+    }
+    else if (materias == null || !materias.Any())
+    {
+        <div class="alert alert-warning">
+            No se encontraron materias registradas.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive shadow-sm">
+            <table class="table table-striped table-hover table-bordered align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 70px;">Id</th>
+                        <th>Descripción</th>
+                        <th style="width: 140px;" class="text-center">Hs Semanales</th>
+                        <th style="width: 140px;" class="text-center">Hs Totales</th>
+                        <th style="width: 100px;" class="text-center">Id Plan</th>
+                        <th style="width: 170px;" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in materias)
+                    {
+                        <tr>
+                            <td>@m.Id</td>
+                            <td><strong>@m.Descripcion</strong></td>
+                            <td class="text-center">@m.HsSemanales hs</td>
+                            <td class="text-center">@m.HsTotales hs</td>
+                            <td class="text-center">@m.IdPlan</td>
+                            <td class="text-center">
+                                @if (Session.TienePermiso("Materias", "Modificar"))
+                                {
+                                    <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => AbrirModalModificar(m)">
+                                        Editar
+                                    </button>
+                                }
+                                @if (Session.TienePermiso("Materias", "Baja"))
+                                {
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => EliminarAsync(m)">
+                                        Eliminar
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- ABM -->
+@if (mostrarModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">@(esModificacion ? "Modificar Materia" : "Nueva Materia")</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CerrarModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(mensajeErrorModal))
+                    {
+                        <div class="alert alert-danger py-2">@mensajeErrorModal</div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Descripción *</label>
+                        <input type="text" class="form-control" @bind="materiaActual.Descripcion" placeholder="Ej: Sintaxis y Semántica de los Lenguajes" />
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Horas Semanales *</label>
+                            <input type="number" class="form-control" @bind="materiaActual.HsSemanales" />
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Horas Totales *</label>
+                            <input type="number" class="form-control" @bind="materiaActual.HsTotales" />
+                        </div>
+                        <div class="col-12 mb-2">
+                            <label class="form-label small fw-bold">Id Plan *</label>
+                            <input type="number" class="form-control" @bind="materiaActual.IdPlan" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarAsync">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<MateriaDTO>? materias;
+    private MateriaDTO materiaActual = new();
+    private string textoBusqueda = string.Empty;
+    private bool cargando = true;
+    private bool mostrarModal = false;
+    private bool esModificacion = false;
+    private string? mensajeExito;
+    private string? mensajeError;
+    private string? mensajeErrorModal;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.EstaAutenticado)
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        await CargarGrillaAsync();
+    }
+
+    private async Task CargarGrillaAsync()
+    {
+        try
+        {
+            cargando = true;
+            mensajeError = null;
+
+            var resultado = await Session.HttpClient.GetFromJsonAsync<IEnumerable<MateriaDTO>>("materias");
+            materias = resultado?.ToList() ?? new List<MateriaDTO>();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al cargar materias: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task BuscarAsync()
+    {
+        if (string.IsNullOrWhiteSpace(textoBusqueda))
+        {
+            await CargarGrillaAsync();
+            return;
+        }
+
+        try
+        {
+            cargando = true;
+            string textoCodificado = Uri.EscapeDataString(textoBusqueda.Trim());
+            var resultado = await Session.HttpClient.GetFromJsonAsync<IEnumerable<MateriaDTO>>($"materias/criteria?texto={textoCodificado}");
+            materias = resultado?.ToList() ?? new List<MateriaDTO>();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error en la búsqueda: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task MostrarTodosAsync()
+    {
+        textoBusqueda = string.Empty;
+        await CargarGrillaAsync();
+    }
+
+
+    private void AbrirModalAlta()
+    {
+        esModificacion = false;
+        mensajeErrorModal = null;
+        materiaActual = new MateriaDTO
+        {
+            HsSemanales = 4,
+            HsTotales = 64,
+            IdPlan = 1
+        };
+        mostrarModal = true;
+    }
+
+    private void AbrirModalModificar(MateriaDTO materia)
+    {
+        esModificacion = true;
+        mensajeErrorModal = null;
+        materiaActual = new MateriaDTO
+        {
+            Id = materia.Id,
+            Descripcion = materia.Descripcion,
+            HsSemanales = materia.HsSemanales,
+            HsTotales = materia.HsTotales,
+            IdPlan = materia.IdPlan
+        };
+        mostrarModal = true;
+    }
+
+    private void CerrarModal()
+    {
+        mostrarModal = false;
+        mensajeErrorModal = null;
+    }
+
+    private async Task GuardarAsync()
+    {
+        mensajeErrorModal = null;
+
+        if (string.IsNullOrWhiteSpace(materiaActual.Descripcion))
+        {
+            mensajeErrorModal = "La descripción es obligatoria.";
+            return;
+        }
+
+        if (materiaActual.HsSemanales <= 0)
+        {
+            mensajeErrorModal = "Las horas semanales deben ser mayores que 0.";
+            return;
+        }
+
+        if (materiaActual.HsTotales < materiaActual.HsSemanales)
+        {
+            mensajeErrorModal = "Las horas totales no pueden ser menores que las semanales.";
+            return;
+        }
+
+        if (materiaActual.IdPlan <= 0)
+        {
+            mensajeErrorModal = "El Id de Plan debe ser mayor que 0.";
+            return;
+        }
+
+        try
+        {
+            HttpResponseMessage response;
+
+            if (esModificacion)
+            {
+                response = await Session.HttpClient.PutAsJsonAsync("materias", materiaActual);
+            }
+            else
+            {
+                response = await Session.HttpClient.PostAsJsonAsync("materias", materiaActual);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensajeErrorModal = $"No se pudo guardar: {error}";
+                return;
+            }
+
+            mostrarModal = false;
+            mensajeExito = esModificacion ? "Materia modificada con éxito." : "Materia agregada con éxito.";
+            await CargarGrillaAsync();
+        }
+        catch (Exception ex)
+        {
+            mensajeErrorModal = $"Error al guardar: {ex.Message}";
+        }
+    }
+
+    private async Task EliminarAsync(MateriaDTO materia)
+    {
+        bool confirma = await JS.InvokeAsync<bool>("confirm", 
+            $"¿Confirma eliminar la materia \"{materia.Descripcion}\"?");
+
+        if (!confirma) return;
+
+        try
+        {
+            var response = await Session.HttpClient.DeleteAsync($"materias/{materia.Id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensajeError = $"No se pudo eliminar: {error}";
+                return;
+            }
+
+            mensajeExito = "Materia eliminada con éxito.";
+            await CargarGrillaAsync();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al eliminar: {ex.Message}";
+        }
+    }
+}
