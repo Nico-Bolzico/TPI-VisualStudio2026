@@ -1,4 +1,4 @@
-﻿namespace WinForms
+namespace WinForms
 {
     partial class FormMateriaEdit
     {
@@ -70,7 +70,7 @@
             label9.Name = "label9";
             label9.Size = new Size(69, 20);
             label9.TabIndex = 37;
-            label9.Text = "Nro. Plan";
+            label9.Text = "Id Plan";
             // 
             // nudIdPlan
             // 

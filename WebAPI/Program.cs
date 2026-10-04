@@ -1,4 +1,4 @@
-﻿using Application.Services;
+using Application.Services;
 using Data;
 using Microsoft.EntityFrameworkCore;
 using WebAPI;
@@ -8,11 +8,25 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using WebAPI.Authorization;
 
+using Microsoft.OpenApi.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } }, Array.Empty<string>() }
+    });
+});
 
 // Add Entity Framework Context
 builder.Services.AddDbContext<TPIContext>(options =>
@@ -23,6 +37,8 @@ builder.Services.AddScoped<IPersonaRepository, PersonaRepository>();
 builder.Services.AddScoped<IPersonaService, PersonaService>();
 builder.Services.AddScoped<IMateriaRepository, MateriaRepository>();
 builder.Services.AddScoped<IMateriaService, MateriaService>();
+builder.Services.AddScoped<IPlanRepository, PlanRepository>();
+builder.Services.AddScoped<IPlanService, PlanService>();
 builder.Services.AddScoped<IModuloUsuarioRepository, ModuloUsuarioRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthorizationHandler, PermisoAuthorizationHandler>();
@@ -55,7 +71,11 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("Materias.Alta", p => p.Requirements.Add(new PermisoRequirement("Materias", "Alta")))
     .AddPolicy("Materias.Baja", p => p.Requirements.Add(new PermisoRequirement("Materias", "Baja")))
     .AddPolicy("Materias.Modificar", p => p.Requirements.Add(new PermisoRequirement("Materias", "Modificar")))
-    .AddPolicy("Materias.Consultar", p => p.Requirements.Add(new PermisoRequirement("Materias", "Consultar")));
+    .AddPolicy("Materias.Consultar", p => p.Requirements.Add(new PermisoRequirement("Materias", "Consultar")))
+    .AddPolicy("Planes.Alta", p => p.Requirements.Add(new PermisoRequirement("Planes", "Alta")))
+    .AddPolicy("Planes.Baja", p => p.Requirements.Add(new PermisoRequirement("Planes", "Baja")))
+    .AddPolicy("Planes.Modificar", p => p.Requirements.Add(new PermisoRequirement("Planes", "Modificar")))
+    .AddPolicy("Planes.Consultar", p => p.Requirements.Add(new PermisoRequirement("Planes", "Consultar")));
 
 var app = builder.Build();
 
@@ -97,14 +117,16 @@ using (var scope = app.Services.CreateScope())
     {
         var moduloPersonas = new Domain.Model.Modulo(0, "Personas", true);
         var moduloMaterias = new Domain.Model.Modulo(0, "Materias", true);
-        context.Modulos.AddRange(moduloPersonas, moduloMaterias);
+        var moduloPlanes = new Domain.Model.Modulo(0, "Planes", true);
+        context.Modulos.AddRange(moduloPersonas, moduloMaterias, moduloPlanes);
         context.SaveChanges();
 
         var admin = context.Usuarios.First(u => u.NombreUsuario == "admin");
 
         context.ModulosUsuarios.AddRange(
             new Domain.Model.ModuloUsuario(0, moduloPersonas.Id, admin.Id, true, true, true, true),
-            new Domain.Model.ModuloUsuario(0, moduloMaterias.Id, admin.Id, true, true, true, true)
+            new Domain.Model.ModuloUsuario(0, moduloMaterias.Id, admin.Id, true, true, true, true),
+            new Domain.Model.ModuloUsuario(0, moduloPlanes.Id, admin.Id, true, true, true, true)
         );
         context.SaveChanges();
     }
@@ -128,7 +150,7 @@ app.UseAuthorization();
 // Map endpoints
 app.MapPersonaEndpoints();
 app.MapMateriaEndpoints();
+app.MapPlanEndpoints();
 app.MapUsuarioEndpoints();
 
 app.Run();
-
