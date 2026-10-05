@@ -35,6 +35,7 @@
             sesionToolStripMenuItem = new ToolStripMenuItem();
             cerrarSesionToolStripMenuItem = new ToolStripMenuItem();
             salirToolStripMenuItem = new ToolStripMenuItem();
+            planesToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -50,7 +51,7 @@
             // 
             // gestionToolStripMenuItem
             // 
-            gestionToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { personasToolStripMenuItem, materiasToolStripMenuItem });
+            gestionToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { personasToolStripMenuItem, materiasToolStripMenuItem, planesToolStripMenuItem });
             gestionToolStripMenuItem.Name = "gestionToolStripMenuItem";
             gestionToolStripMenuItem.Size = new Size(73, 24);
             gestionToolStripMenuItem.Text = "Gestión";
@@ -90,6 +91,13 @@
             salirToolStripMenuItem.Text = "Salir";
             salirToolStripMenuItem.Click += salirToolStripMenuItem_Click;
             // 
+            // planesToolStripMenuItem
+            // 
+            planesToolStripMenuItem.Name = "planesToolStripMenuItem";
+            planesToolStripMenuItem.Size = new Size(224, 26);
+            planesToolStripMenuItem.Text = "Planes";
+            planesToolStripMenuItem.Click += planesToolStripMenuItem_Click;
+            // 
             // FormPrincipal
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -115,5 +123,6 @@
         private ToolStripMenuItem sesionToolStripMenuItem;
         private ToolStripMenuItem cerrarSesionToolStripMenuItem;
         private ToolStripMenuItem salirToolStripMenuItem;
+        private ToolStripMenuItem planesToolStripMenuItem;
     }
 }

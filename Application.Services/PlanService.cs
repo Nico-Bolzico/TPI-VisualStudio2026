@@ -21,7 +21,7 @@ namespace Application.Services
             {
                 foreach (var m in dto.Materias)
                 {
-                    plan.AgregarMateria(new Materia(0, m.Descripcion, m.HsSemanales, m.HsTotales, 0));
+                    plan.AgregarMateria(Materia.NuevaParaPlan(m.Descripcion, m.HsSemanales, m.HsTotales));
                 }
             }
 

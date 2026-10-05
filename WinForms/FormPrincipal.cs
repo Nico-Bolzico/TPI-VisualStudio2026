@@ -22,6 +22,7 @@ public partial class FormPrincipal : Form
     private void FormPrincipal_Load(object sender, EventArgs e)
     {
         this.Text = $"TPI Academia - Conectado como: {ApiSession.UsuarioActual}";
+        planesToolStripMenuItem.Visible = ApiSession.TienePermiso("Planes", "Consultar");
     }
 
     private void personasToolStripMenuItem_Click(object sender, EventArgs e)
@@ -34,6 +35,11 @@ public partial class FormPrincipal : Form
     {
         using var formMaterias = new FormMaterias();
         formMaterias.ShowDialog(this);
+    }
+    private void planesToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        using var formPlanes = new FormPlanes();
+        formPlanes.ShowDialog(this);
     }
 
     private void cerrarSesionToolStripMenuItem_Click(object sender, EventArgs e)
@@ -57,4 +63,5 @@ public partial class FormPrincipal : Form
     {
 
     }
+
 }

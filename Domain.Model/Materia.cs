@@ -15,6 +15,12 @@ namespace Domain.Model
             SetIdPlan(idPlan);
             SetHoras(hsSemanales, hsTotales);
         }
+        public static Materia NuevaParaPlan(string descripcion, int hsSemanales, int hsTotales)
+        {
+            var materia = new Materia(0, descripcion, hsSemanales, hsTotales, 1);
+            materia.IdPlan = 0;
+            return materia;
+        }
 
         public void SetId(int id)
         {

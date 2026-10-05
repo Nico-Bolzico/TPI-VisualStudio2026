@@ -68,7 +68,7 @@ namespace WinForms
             label9.AutoSize = true;
             label9.Location = new Point(12, 82);
             label9.Name = "label9";
-            label9.Size = new Size(69, 20);
+            label9.Size = new Size(54, 20);
             label9.TabIndex = 37;
             label9.Text = "Id Plan";
             // 
@@ -123,6 +123,7 @@ namespace WinForms
             // nudHsTotales
             // 
             nudHsTotales.Location = new Point(218, 173);
+            nudHsTotales.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
             nudHsTotales.Name = "nudHsTotales";
             nudHsTotales.Size = new Size(150, 27);
             nudHsTotales.TabIndex = 42;

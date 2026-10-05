@@ -34,6 +34,13 @@ public partial class FormMateriaEdit : Form
         nudIdPlan.Value = materiaExistente.IdPlan;
     }
 
+    private bool planOculto = false;
+    public void OcultarPlan()
+    {
+        planOculto = true;
+        label9.Visible = false;
+        nudIdPlan.Visible = false;
+    }
     private void FormMateriaEdit_FormClosing(object sender, FormClosingEventArgs e)
     {
         if (this.DialogResult != DialogResult.OK)
@@ -43,6 +50,14 @@ public partial class FormMateriaEdit : Form
         {
             MessageBox.Show("La descripción es obligatoria.",
                 "Datos incompletos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            e.Cancel = true;
+            return;
+        }
+
+        if (nudHsSemanales.Value <= 0 || nudHsTotales.Value <= 0)
+        {
+            MessageBox.Show("Las horas semanales y totales deben ser mayores que 0.",
+                "Dato inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             e.Cancel = true;
             return;
         }
@@ -58,6 +73,7 @@ public partial class FormMateriaEdit : Form
         Materia.Descripcion = txtDescripcion.Text.Trim();
         Materia.HsSemanales = (int)nudHsSemanales.Value;
         Materia.HsTotales = (int)nudHsTotales.Value;
-        Materia.IdPlan = (int)nudIdPlan.Value;
+        if (!planOculto)
+            Materia.IdPlan = (int)nudIdPlan.Value;
     }
 }
