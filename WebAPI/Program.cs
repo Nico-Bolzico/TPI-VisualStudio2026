@@ -39,6 +39,16 @@ builder.Services.AddScoped<IMateriaRepository, MateriaRepository>();
 builder.Services.AddScoped<IMateriaService, MateriaService>();
 builder.Services.AddScoped<IPlanRepository, PlanRepository>();
 builder.Services.AddScoped<IPlanService, PlanService>();
+builder.Services.AddScoped<IEspecialidadRepository, EspecialidadRepository>();
+builder.Services.AddScoped<IEspecialidadService, EspecialidadService>();
+builder.Services.AddScoped<IComisionRepository, ComisionRepository>();
+builder.Services.AddScoped<IComisionService, ComisionService>();
+builder.Services.AddScoped<ICursoRepository, CursoRepository>();
+builder.Services.AddScoped<ICursoService, CursoService>();
+builder.Services.AddScoped<IAlumnoInscripcionRepository, AlumnoInscripcionRepository>();
+builder.Services.AddScoped<IAlumnoInscripcionService, AlumnoInscripcionService>();
+builder.Services.AddScoped<IDocenteCursoRepository, DocenteCursoRepository>();
+builder.Services.AddScoped<IDocenteCursoService, DocenteCursoService>();
 builder.Services.AddScoped<IModuloUsuarioRepository, ModuloUsuarioRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthorizationHandler, PermisoAuthorizationHandler>();
@@ -75,7 +85,27 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("Planes.Alta", p => p.Requirements.Add(new PermisoRequirement("Planes", "Alta")))
     .AddPolicy("Planes.Baja", p => p.Requirements.Add(new PermisoRequirement("Planes", "Baja")))
     .AddPolicy("Planes.Modificar", p => p.Requirements.Add(new PermisoRequirement("Planes", "Modificar")))
-    .AddPolicy("Planes.Consultar", p => p.Requirements.Add(new PermisoRequirement("Planes", "Consultar")));
+    .AddPolicy("Planes.Consultar", p => p.Requirements.Add(new PermisoRequirement("Planes", "Consultar")))
+    .AddPolicy("Especialidades.Alta", p => p.Requirements.Add(new PermisoRequirement("Especialidades", "Alta")))
+    .AddPolicy("Especialidades.Baja", p => p.Requirements.Add(new PermisoRequirement("Especialidades", "Baja")))
+    .AddPolicy("Especialidades.Modificar", p => p.Requirements.Add(new PermisoRequirement("Especialidades", "Modificar")))
+    .AddPolicy("Especialidades.Consultar", p => p.Requirements.Add(new PermisoRequirement("Especialidades", "Consultar")))
+    .AddPolicy("Comisiones.Alta", p => p.Requirements.Add(new PermisoRequirement("Comisiones", "Alta")))
+    .AddPolicy("Comisiones.Baja", p => p.Requirements.Add(new PermisoRequirement("Comisiones", "Baja")))
+    .AddPolicy("Comisiones.Modificar", p => p.Requirements.Add(new PermisoRequirement("Comisiones", "Modificar")))
+    .AddPolicy("Comisiones.Consultar", p => p.Requirements.Add(new PermisoRequirement("Comisiones", "Consultar")))
+    .AddPolicy("Cursos.Alta", p => p.Requirements.Add(new PermisoRequirement("Cursos", "Alta")))
+    .AddPolicy("Cursos.Baja", p => p.Requirements.Add(new PermisoRequirement("Cursos", "Baja")))
+    .AddPolicy("Cursos.Modificar", p => p.Requirements.Add(new PermisoRequirement("Cursos", "Modificar")))
+    .AddPolicy("Cursos.Consultar", p => p.Requirements.Add(new PermisoRequirement("Cursos", "Consultar")))
+    .AddPolicy("Inscripciones.Alta", p => p.Requirements.Add(new PermisoRequirement("Inscripciones", "Alta")))
+    .AddPolicy("Inscripciones.Baja", p => p.Requirements.Add(new PermisoRequirement("Inscripciones", "Baja")))
+    .AddPolicy("Inscripciones.Modificar", p => p.Requirements.Add(new PermisoRequirement("Inscripciones", "Modificar")))
+    .AddPolicy("Inscripciones.Consultar", p => p.Requirements.Add(new PermisoRequirement("Inscripciones", "Consultar")))
+    .AddPolicy("DocentesCursos.Alta", p => p.Requirements.Add(new PermisoRequirement("DocentesCursos", "Alta")))
+    .AddPolicy("DocentesCursos.Baja", p => p.Requirements.Add(new PermisoRequirement("DocentesCursos", "Baja")))
+    .AddPolicy("DocentesCursos.Modificar", p => p.Requirements.Add(new PermisoRequirement("DocentesCursos", "Modificar")))
+    .AddPolicy("DocentesCursos.Consultar", p => p.Requirements.Add(new PermisoRequirement("DocentesCursos", "Consultar")));
 
 var app = builder.Build();
 
@@ -119,7 +149,12 @@ using (var scope = app.Services.CreateScope())
         var moduloPersonas = new Domain.Model.Modulo(0, "Personas", true);
         var moduloMaterias = new Domain.Model.Modulo(0, "Materias", true);
         var moduloPlanes = new Domain.Model.Modulo(0, "Planes", true);
-        context.Modulos.AddRange(moduloPersonas, moduloMaterias, moduloPlanes);
+        var moduloEspecialidades = new Domain.Model.Modulo(0, "Especialidades", true);
+        var moduloComisiones = new Domain.Model.Modulo(0, "Comisiones", true);
+        var moduloCursos = new Domain.Model.Modulo(0, "Cursos", true);
+        var moduloInscripciones = new Domain.Model.Modulo(0, "Inscripciones", true);
+        var moduloDocentesCursos = new Domain.Model.Modulo(0, "DocentesCursos", true);
+        context.Modulos.AddRange(moduloPersonas, moduloMaterias, moduloPlanes, moduloEspecialidades, moduloComisiones, moduloCursos, moduloInscripciones, moduloDocentesCursos);
         context.SaveChanges();
 
         var admin = context.Usuarios.First(u => u.NombreUsuario == "admin");
@@ -127,8 +162,31 @@ using (var scope = app.Services.CreateScope())
         context.ModulosUsuarios.AddRange(
             new Domain.Model.ModuloUsuario(0, moduloPersonas.Id, admin.Id, true, true, true, true),
             new Domain.Model.ModuloUsuario(0, moduloMaterias.Id, admin.Id, true, true, true, true),
-            new Domain.Model.ModuloUsuario(0, moduloPlanes.Id, admin.Id, true, true, true, true)
+            new Domain.Model.ModuloUsuario(0, moduloPlanes.Id, admin.Id, true, true, true, true),
+            new Domain.Model.ModuloUsuario(0, moduloEspecialidades.Id, admin.Id, true, true, true, true),
+            new Domain.Model.ModuloUsuario(0, moduloComisiones.Id, admin.Id, true, true, true, true),
+            new Domain.Model.ModuloUsuario(0, moduloCursos.Id, admin.Id, true, true, true, true),
+            new Domain.Model.ModuloUsuario(0, moduloInscripciones.Id, admin.Id, true, true, true, true),
+            new Domain.Model.ModuloUsuario(0, moduloDocentesCursos.Id, admin.Id, true, true, true, true)
         );
+        context.SaveChanges();
+    }
+
+    if (!context.Especialidades.Any())
+    {
+        context.Especialidades.Add(new Domain.Model.Especialidad(0, "Ingeniería en Sistemas de Información"));
+        context.SaveChanges();
+    }
+
+    if (!context.Comisiones.Any())
+    {
+        context.Comisiones.Add(new Domain.Model.Comision(0, "1K1", 1, 1));
+        context.SaveChanges();
+    }
+
+    if (!context.Cursos.Any())
+    {
+        context.Cursos.Add(new Domain.Model.Curso(0, 1, 1, 2026, 35));
         context.SaveChanges();
     }
 }
@@ -152,6 +210,11 @@ app.UseAuthorization();
 app.MapPersonaEndpoints();
 app.MapMateriaEndpoints();
 app.MapPlanEndpoints();
+app.MapEspecialidadEndpoints();
+app.MapComisionEndpoints();
+app.MapCursoEndpoints();
+app.MapAlumnoInscripcionEndpoints();
+app.MapDocenteCursoEndpoints();
 app.MapUsuarioEndpoints();
 
 app.Run();
