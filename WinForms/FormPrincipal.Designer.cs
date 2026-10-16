@@ -33,17 +33,18 @@
             personasToolStripMenuItem = new ToolStripMenuItem();
             materiasToolStripMenuItem = new ToolStripMenuItem();
             planesToolStripMenuItem = new ToolStripMenuItem();
+            cursosToolStripMenuItem = new ToolStripMenuItem();
             sesionToolStripMenuItem = new ToolStripMenuItem();
             cerrarSesionToolStripMenuItem = new ToolStripMenuItem();
             salirToolStripMenuItem = new ToolStripMenuItem();
-            cursosToolStripMenuItem = new ToolStripMenuItem();
+            reportesToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
             // 
             menuStrip1.ImageScalingSize = new Size(20, 20);
-            menuStrip1.Items.AddRange(new ToolStripItem[] { gestionToolStripMenuItem, sesionToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { gestionToolStripMenuItem, sesionToolStripMenuItem, reportesToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(800, 28);
@@ -60,23 +61,30 @@
             // personasToolStripMenuItem
             // 
             personasToolStripMenuItem.Name = "personasToolStripMenuItem";
-            personasToolStripMenuItem.Size = new Size(224, 26);
+            personasToolStripMenuItem.Size = new Size(149, 26);
             personasToolStripMenuItem.Text = "Personas";
             personasToolStripMenuItem.Click += personasToolStripMenuItem_Click;
             // 
             // materiasToolStripMenuItem
             // 
             materiasToolStripMenuItem.Name = "materiasToolStripMenuItem";
-            materiasToolStripMenuItem.Size = new Size(224, 26);
+            materiasToolStripMenuItem.Size = new Size(149, 26);
             materiasToolStripMenuItem.Text = "Materias";
             materiasToolStripMenuItem.Click += materiasToolStripMenuItem_Click;
             // 
             // planesToolStripMenuItem
             // 
             planesToolStripMenuItem.Name = "planesToolStripMenuItem";
-            planesToolStripMenuItem.Size = new Size(224, 26);
+            planesToolStripMenuItem.Size = new Size(149, 26);
             planesToolStripMenuItem.Text = "Planes";
             planesToolStripMenuItem.Click += planesToolStripMenuItem_Click;
+            // 
+            // cursosToolStripMenuItem
+            // 
+            cursosToolStripMenuItem.Name = "cursosToolStripMenuItem";
+            cursosToolStripMenuItem.Size = new Size(149, 26);
+            cursosToolStripMenuItem.Text = "Cursos";
+            cursosToolStripMenuItem.Click += cursosToolStripMenuItem_Click;
             // 
             // sesionToolStripMenuItem
             // 
@@ -99,12 +107,12 @@
             salirToolStripMenuItem.Text = "Salir";
             salirToolStripMenuItem.Click += salirToolStripMenuItem_Click;
             // 
-            // cursosToolStripMenuItem
+            // reportesToolStripMenuItem
             // 
-            cursosToolStripMenuItem.Name = "cursosToolStripMenuItem";
-            cursosToolStripMenuItem.Size = new Size(224, 26);
-            cursosToolStripMenuItem.Text = "Cursos";
-            cursosToolStripMenuItem.Click += cursosToolStripMenuItem_Click;
+            reportesToolStripMenuItem.Name = "reportesToolStripMenuItem";
+            reportesToolStripMenuItem.Size = new Size(82, 24);
+            reportesToolStripMenuItem.Text = "Reportes";
+            reportesToolStripMenuItem.Click += reportesToolStripMenuItem_Click;
             // 
             // FormPrincipal
             // 
@@ -133,5 +141,6 @@
         private ToolStripMenuItem salirToolStripMenuItem;
         private ToolStripMenuItem planesToolStripMenuItem;
         private ToolStripMenuItem cursosToolStripMenuItem;
+        private ToolStripMenuItem reportesToolStripMenuItem;
     }
 }

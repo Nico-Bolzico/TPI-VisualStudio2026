@@ -70,4 +70,10 @@ public partial class FormPrincipal : Form
         using var formCursos = new FormCursos();
         formCursos.ShowDialog(this);
     }
+
+    private void reportesToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        using var reporte = new GraficoInscriptosContraCupo();
+        reporte.ShowDialog(this);
+    }
 }
