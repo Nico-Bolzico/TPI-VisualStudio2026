@@ -9,7 +9,7 @@ namespace Application.Services
         private readonly IMateriaRepository materiaRepository;
         private readonly IPlanRepository planRepository;
 
-        public MateriaService(IMateriaRepository materiaRepository)
+        public MateriaService(IMateriaRepository materiaRepository, IPlanRepository planRepository)
         {
             this.materiaRepository = materiaRepository;
             this.planRepository = planRepository;
