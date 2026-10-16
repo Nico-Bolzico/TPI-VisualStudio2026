@@ -63,7 +63,6 @@ public partial class FormPlanEdit : Form
     private void btnAgregarMateria_Click(object sender, EventArgs e)
     {
         using var formMateria = new FormMateriaEdit();
-        formMateria.OcultarPlan();
 
         if (formMateria.ShowDialog(this) == DialogResult.OK)
         {
@@ -81,7 +80,6 @@ public partial class FormPlanEdit : Form
         }
 
         using var formMateria = new FormMateriaEdit(materia);
-        formMateria.OcultarPlan();
 
         if (formMateria.ShowDialog(this) == DialogResult.OK)
         {

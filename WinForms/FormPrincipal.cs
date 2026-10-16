@@ -23,6 +23,7 @@ public partial class FormPrincipal : Form
     {
         this.Text = $"TPI Academia - Conectado como: {ApiSession.UsuarioActual?.NombreUsuario}";
         planesToolStripMenuItem.Visible = ApiSession.TienePermiso("Planes", "Consultar");
+        cursosToolStripMenuItem.Visible = ApiSession.TienePermiso("Cursos", "Consultar");
     }
 
     private void personasToolStripMenuItem_Click(object sender, EventArgs e)
@@ -64,4 +65,9 @@ public partial class FormPrincipal : Form
 
     }
 
+    private void cursosToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        using var formCursos = new FormCursos();
+        formCursos.ShowDialog(this);
+    }
 }

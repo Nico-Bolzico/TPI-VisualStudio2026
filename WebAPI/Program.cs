@@ -115,6 +115,7 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<TPIContext>();
     context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
+    DbSeeder.Seed(context);
 
     if (!context.Usuarios.Any())
     {

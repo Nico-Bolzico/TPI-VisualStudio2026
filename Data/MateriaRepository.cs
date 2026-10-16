@@ -59,7 +59,6 @@ namespace Data
 
                 existingMateria.SetDescripcion(materia.Descripcion);
                 existingMateria.SetHoras(materia.HsSemanales, materia.HsTotales);
-                existingMateria.SetIdPlan(materia.IdPlan);
 
                 await context.SaveChangesAsync();
                 return true;

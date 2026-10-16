@@ -7,14 +7,17 @@ namespace Application.Services
     public class MateriaService : IMateriaService
     {
         private readonly IMateriaRepository materiaRepository;
+        private readonly IPlanRepository planRepository;
 
         public MateriaService(IMateriaRepository materiaRepository)
         {
             this.materiaRepository = materiaRepository;
+            this.planRepository = planRepository;
         }
 
         public async Task<MateriaDTO> AddAsync(MateriaDTO dto)
         {
+            if (await planRepository.GetAsync(dto.IdPlan) is null) throw new ArgumentException("El plan indicado no existe.");
             Materia materia = new Materia(0, dto.Descripcion, dto.HsSemanales, dto.HsTotales, dto.IdPlan);
 
             await materiaRepository.AddAsync(materia);
@@ -55,6 +58,8 @@ namespace Application.Services
             var existing = await materiaRepository.GetAsync(dto.Id);
             if (existing == null)
                 return false;
+
+            if (existing.IdPlan != dto.IdPlan) throw new ArgumentException("Una materia no puede cambiar de plan una vez creada.");
 
             Materia materia = new Materia(dto.Id, dto.Descripcion, dto.HsSemanales, dto.HsTotales, dto.IdPlan);
             return await materiaRepository.UpdateAsync(materia);

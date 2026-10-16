@@ -31,16 +31,8 @@ public partial class FormMateriaEdit : Form
         txtDescripcion.Text = materiaExistente.Descripcion;
         nudHsSemanales.Value = materiaExistente.HsSemanales;
         nudHsTotales.Value = materiaExistente.HsTotales;
-        nudIdPlan.Value = materiaExistente.IdPlan;
     }
 
-    private bool planOculto = false;
-    public void OcultarPlan()
-    {
-        planOculto = true;
-        label9.Visible = false;
-        nudIdPlan.Visible = false;
-    }
     private void FormMateriaEdit_FormClosing(object sender, FormClosingEventArgs e)
     {
         if (this.DialogResult != DialogResult.OK)
@@ -73,7 +65,5 @@ public partial class FormMateriaEdit : Form
         Materia.Descripcion = txtDescripcion.Text.Trim();
         Materia.HsSemanales = (int)nudHsSemanales.Value;
         Materia.HsTotales = (int)nudHsTotales.Value;
-        if (!planOculto)
-            Materia.IdPlan = (int)nudIdPlan.Value;
     }
 }

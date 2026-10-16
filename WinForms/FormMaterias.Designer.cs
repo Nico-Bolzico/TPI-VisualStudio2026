@@ -30,7 +30,6 @@
         {
             btnBaja = new Button();
             Modificar = new Button();
-            btnAlta = new Button();
             btnMostrarTodos = new Button();
             txtBusqueda = new TextBox();
             btnBuscar = new Button();
@@ -40,7 +39,7 @@
             // 
             // btnBaja
             // 
-            btnBaja.Location = new Point(212, 383);
+            btnBaja.Location = new Point(112, 383);
             btnBaja.Name = "btnBaja";
             btnBaja.Size = new Size(94, 29);
             btnBaja.TabIndex = 13;
@@ -50,23 +49,13 @@
             // 
             // Modificar
             // 
-            Modificar.Location = new Point(112, 383);
+            Modificar.Location = new Point(12, 383);
             Modificar.Name = "Modificar";
             Modificar.Size = new Size(94, 29);
             Modificar.TabIndex = 12;
             Modificar.Text = "Modificar";
             Modificar.UseVisualStyleBackColor = true;
             Modificar.Click += btnModificar_Click;
-            // 
-            // btnAlta
-            // 
-            btnAlta.Location = new Point(12, 383);
-            btnAlta.Name = "btnAlta";
-            btnAlta.Size = new Size(94, 29);
-            btnAlta.TabIndex = 11;
-            btnAlta.Text = "Alta";
-            btnAlta.UseVisualStyleBackColor = true;
-            btnAlta.Click += btnAlta_Click;
             // 
             // btnMostrarTodos
             // 
@@ -113,7 +102,6 @@
             ClientSize = new Size(800, 450);
             Controls.Add(btnBaja);
             Controls.Add(Modificar);
-            Controls.Add(btnAlta);
             Controls.Add(btnMostrarTodos);
             Controls.Add(txtBusqueda);
             Controls.Add(btnBuscar);
@@ -130,7 +118,6 @@
 
         private Button btnBaja;
         private Button Modificar;
-        private Button btnAlta;
         private Button btnMostrarTodos;
         private TextBox txtBusqueda;
         private Button btnBuscar;

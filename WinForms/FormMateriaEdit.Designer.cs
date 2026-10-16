@@ -30,15 +30,12 @@ namespace WinForms
         {
             btnCancelar = new Button();
             btnAceptar = new Button();
-            label9 = new Label();
-            nudIdPlan = new NumericUpDown();
             label1 = new Label();
             txtDescripcion = new TextBox();
             label2 = new Label();
             nudHsSemanales = new NumericUpDown();
             label3 = new Label();
             nudHsTotales = new NumericUpDown();
-            ((System.ComponentModel.ISupportInitialize)nudIdPlan).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudHsSemanales).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudHsTotales).BeginInit();
             SuspendLayout();
@@ -46,7 +43,7 @@ namespace WinForms
             // btnCancelar
             // 
             btnCancelar.DialogResult = DialogResult.Cancel;
-            btnCancelar.Location = new Point(121, 224);
+            btnCancelar.Location = new Point(121, 152);
             btnCancelar.Name = "btnCancelar";
             btnCancelar.Size = new Size(94, 29);
             btnCancelar.TabIndex = 39;
@@ -56,28 +53,12 @@ namespace WinForms
             // btnAceptar
             // 
             btnAceptar.DialogResult = DialogResult.OK;
-            btnAceptar.Location = new Point(12, 223);
+            btnAceptar.Location = new Point(12, 151);
             btnAceptar.Name = "btnAceptar";
             btnAceptar.Size = new Size(94, 29);
             btnAceptar.TabIndex = 38;
             btnAceptar.Text = "Aceptar";
             btnAceptar.UseVisualStyleBackColor = true;
-            // 
-            // label9
-            // 
-            label9.AutoSize = true;
-            label9.Location = new Point(12, 82);
-            label9.Name = "label9";
-            label9.Size = new Size(54, 20);
-            label9.TabIndex = 37;
-            label9.Text = "Id Plan";
-            // 
-            // nudIdPlan
-            // 
-            nudIdPlan.Location = new Point(12, 104);
-            nudIdPlan.Name = "nudIdPlan";
-            nudIdPlan.Size = new Size(150, 27);
-            nudIdPlan.TabIndex = 36;
             // 
             // label1
             // 
@@ -98,7 +79,7 @@ namespace WinForms
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(12, 151);
+            label2.Location = new Point(12, 79);
             label2.Name = "label2";
             label2.Size = new Size(136, 20);
             label2.TabIndex = 41;
@@ -106,7 +87,7 @@ namespace WinForms
             // 
             // nudHsSemanales
             // 
-            nudHsSemanales.Location = new Point(12, 173);
+            nudHsSemanales.Location = new Point(12, 101);
             nudHsSemanales.Name = "nudHsSemanales";
             nudHsSemanales.Size = new Size(150, 27);
             nudHsSemanales.TabIndex = 40;
@@ -114,7 +95,7 @@ namespace WinForms
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(218, 151);
+            label3.Location = new Point(218, 79);
             label3.Name = "label3";
             label3.Size = new Size(112, 20);
             label3.TabIndex = 43;
@@ -122,7 +103,7 @@ namespace WinForms
             // 
             // nudHsTotales
             // 
-            nudHsTotales.Location = new Point(218, 173);
+            nudHsTotales.Location = new Point(218, 101);
             nudHsTotales.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
             nudHsTotales.Name = "nudHsTotales";
             nudHsTotales.Size = new Size(150, 27);
@@ -139,14 +120,11 @@ namespace WinForms
             Controls.Add(nudHsSemanales);
             Controls.Add(btnCancelar);
             Controls.Add(btnAceptar);
-            Controls.Add(label9);
-            Controls.Add(nudIdPlan);
             Controls.Add(label1);
             Controls.Add(txtDescripcion);
             Name = "FormMateriaEdit";
             Text = "FormMateriaEdit";
             FormClosing += FormMateriaEdit_FormClosing;
-            ((System.ComponentModel.ISupportInitialize)nudIdPlan).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudHsSemanales).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudHsTotales).EndInit();
             ResumeLayout(false);
@@ -157,8 +135,6 @@ namespace WinForms
 
         private Button btnCancelar;
         private Button btnAceptar;
-        private Label label9;
-        private NumericUpDown nudIdPlan;
         private Label label1;
         private TextBox txtDescripcion;
         private Label label2;

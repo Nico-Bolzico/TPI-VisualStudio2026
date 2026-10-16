@@ -32,10 +32,11 @@
             gestionToolStripMenuItem = new ToolStripMenuItem();
             personasToolStripMenuItem = new ToolStripMenuItem();
             materiasToolStripMenuItem = new ToolStripMenuItem();
+            planesToolStripMenuItem = new ToolStripMenuItem();
             sesionToolStripMenuItem = new ToolStripMenuItem();
             cerrarSesionToolStripMenuItem = new ToolStripMenuItem();
             salirToolStripMenuItem = new ToolStripMenuItem();
-            planesToolStripMenuItem = new ToolStripMenuItem();
+            cursosToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -51,7 +52,7 @@
             // 
             // gestionToolStripMenuItem
             // 
-            gestionToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { personasToolStripMenuItem, materiasToolStripMenuItem, planesToolStripMenuItem });
+            gestionToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { personasToolStripMenuItem, materiasToolStripMenuItem, planesToolStripMenuItem, cursosToolStripMenuItem });
             gestionToolStripMenuItem.Name = "gestionToolStripMenuItem";
             gestionToolStripMenuItem.Size = new Size(73, 24);
             gestionToolStripMenuItem.Text = "Gestión";
@@ -69,6 +70,13 @@
             materiasToolStripMenuItem.Size = new Size(224, 26);
             materiasToolStripMenuItem.Text = "Materias";
             materiasToolStripMenuItem.Click += materiasToolStripMenuItem_Click;
+            // 
+            // planesToolStripMenuItem
+            // 
+            planesToolStripMenuItem.Name = "planesToolStripMenuItem";
+            planesToolStripMenuItem.Size = new Size(224, 26);
+            planesToolStripMenuItem.Text = "Planes";
+            planesToolStripMenuItem.Click += planesToolStripMenuItem_Click;
             // 
             // sesionToolStripMenuItem
             // 
@@ -91,12 +99,12 @@
             salirToolStripMenuItem.Text = "Salir";
             salirToolStripMenuItem.Click += salirToolStripMenuItem_Click;
             // 
-            // planesToolStripMenuItem
+            // cursosToolStripMenuItem
             // 
-            planesToolStripMenuItem.Name = "planesToolStripMenuItem";
-            planesToolStripMenuItem.Size = new Size(224, 26);
-            planesToolStripMenuItem.Text = "Planes";
-            planesToolStripMenuItem.Click += planesToolStripMenuItem_Click;
+            cursosToolStripMenuItem.Name = "cursosToolStripMenuItem";
+            cursosToolStripMenuItem.Size = new Size(224, 26);
+            cursosToolStripMenuItem.Text = "Cursos";
+            cursosToolStripMenuItem.Click += cursosToolStripMenuItem_Click;
             // 
             // FormPrincipal
             // 
@@ -124,5 +132,6 @@
         private ToolStripMenuItem cerrarSesionToolStripMenuItem;
         private ToolStripMenuItem salirToolStripMenuItem;
         private ToolStripMenuItem planesToolStripMenuItem;
+        private ToolStripMenuItem cursosToolStripMenuItem;
     }
 }
