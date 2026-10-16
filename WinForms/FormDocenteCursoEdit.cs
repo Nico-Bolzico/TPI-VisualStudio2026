@@ -6,13 +6,11 @@ public partial class FormDocenteCursoEdit : Form
 {
     private sealed record OpcionDocente(int Id, string Texto);
 
-    // Siempre es una copia: la fila original de la grilla no se toca
-    // hasta que la API confirma el cambio.
     public DocenteCursoDTO Asignacion { get; private set; }
 
     private readonly bool modoEdicion;
 
-    // ALTA: se elige el docente entre los recibidos; el curso ya viene definido.
+    
     public FormDocenteCursoEdit(IEnumerable<PersonaDTO> profesores, int idCurso)
     {
         InitializeComponent();
@@ -31,7 +29,7 @@ public partial class FormDocenteCursoEdit : Form
         cmbCargo.SelectedIndex = -1;
     }
 
-    // MODIFICACIÓN: el docente y el curso no cambian; solo el cargo.
+    
     public FormDocenteCursoEdit(DocenteCursoDTO existente, string nombreDocente)
     {
         InitializeComponent();
@@ -59,8 +57,6 @@ public partial class FormDocenteCursoEdit : Form
         cmbDocente.DataSource = opciones;
     }
 
-    // Si el curso ya tiene un cargo que no figura en la tabla (código desconocido),
-    // se lo agrega para no perderlo al modificar.
     private void CargarCargos(int? cargoActual)
     {
         var cargos = CargoDocenteDTO.Todos.ToList();
@@ -103,5 +99,10 @@ public partial class FormDocenteCursoEdit : Form
 
         Asignacion.IdDocente = idDocente;
         Asignacion.Cargo = cargo;
+    }
+
+    private void btnAceptar_Click(object sender, EventArgs e)
+    {
+
     }
 }

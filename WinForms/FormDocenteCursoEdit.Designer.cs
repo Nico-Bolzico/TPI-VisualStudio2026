@@ -59,7 +59,7 @@ namespace WinForms
             lblCargo.AutoSize = true;
             lblCargo.Location = new Point(12, 72);
             lblCargo.Name = "lblCargo";
-            lblCargo.Size = new Size(51, 20);
+            lblCargo.Size = new Size(49, 20);
             lblCargo.TabIndex = 2;
             lblCargo.Text = "Cargo";
             // 
@@ -81,6 +81,7 @@ namespace WinForms
             btnAceptar.TabIndex = 4;
             btnAceptar.Text = "Aceptar";
             btnAceptar.UseVisualStyleBackColor = true;
+            btnAceptar.Click += btnAceptar_Click;
             // 
             // btnCancelar
             // 

@@ -4,8 +4,7 @@ namespace WinForms;
 
 public partial class FormCursoEdit : Form
 {
-    // Siempre es una copia: el CursoDTO original de la grilla no se modifica
-    // hasta que la API confirma el cambio.
+    // el CursoDTO de la grilla no se modifica hasta que la API confirma el cambio.
     public CursoDTO Curso { get; private set; }
 
     public FormCursoEdit(IEnumerable<MateriaDTO> materias, IEnumerable<ComisionDTO> comisiones,
@@ -75,5 +74,10 @@ public partial class FormCursoEdit : Form
         Curso.IdComision = idComision;
         Curso.AnioCalendario = (int)nudAnio.Value;
         Curso.Cupo = (int)nudCupo.Value;
+    }
+
+    private void FormCursoEdit_Load(object sender, EventArgs e)
+    {
+
     }
 }

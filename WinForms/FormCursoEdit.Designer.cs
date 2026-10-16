@@ -47,7 +47,7 @@ namespace WinForms
             lblMateria.AutoSize = true;
             lblMateria.Location = new Point(12, 12);
             lblMateria.Name = "lblMateria";
-            lblMateria.Size = new Size(61, 20);
+            lblMateria.Size = new Size(60, 20);
             lblMateria.TabIndex = 0;
             lblMateria.Text = "Materia";
             // 
@@ -65,7 +65,7 @@ namespace WinForms
             lblComision.AutoSize = true;
             lblComision.Location = new Point(12, 72);
             lblComision.Name = "lblComision";
-            lblComision.Size = new Size(73, 20);
+            lblComision.Size = new Size(71, 20);
             lblComision.TabIndex = 2;
             lblComision.Text = "Comisión";
             // 
@@ -83,7 +83,7 @@ namespace WinForms
             lblAnio.AutoSize = true;
             lblAnio.Location = new Point(12, 132);
             lblAnio.Name = "lblAnio";
-            lblAnio.Size = new Size(116, 20);
+            lblAnio.Size = new Size(110, 20);
             lblAnio.TabIndex = 4;
             lblAnio.Text = "Año calendario";
             // 
@@ -102,7 +102,7 @@ namespace WinForms
             lblCupo.AutoSize = true;
             lblCupo.Location = new Point(200, 132);
             lblCupo.Name = "lblCupo";
-            lblCupo.Size = new Size(45, 20);
+            lblCupo.Size = new Size(44, 20);
             lblCupo.TabIndex = 6;
             lblCupo.Text = "Cupo";
             // 
@@ -160,6 +160,7 @@ namespace WinForms
             StartPosition = FormStartPosition.CenterParent;
             Text = "Curso";
             FormClosing += FormCursoEdit_FormClosing;
+            Load += FormCursoEdit_Load;
             ((System.ComponentModel.ISupportInitialize)nudAnio).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudCupo).EndInit();
             ResumeLayout(false);

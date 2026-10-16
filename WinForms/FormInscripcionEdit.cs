@@ -6,13 +6,10 @@ public partial class FormInscripcionEdit : Form
 {
     private sealed record OpcionAlumno(int Id, string Texto);
 
-    // Siempre es una copia: la fila original de la grilla no se toca
-    // hasta que la API confirma el cambio.
     public AlumnoInscripcionDTO Inscripcion { get; private set; }
 
     private readonly bool modoEdicion;
 
-    // ALTA: se elige el alumno entre los recibidos; el curso ya viene definido.
     public FormInscripcionEdit(IEnumerable<PersonaDTO> alumnos, int idCurso)
     {
         InitializeComponent();
@@ -30,7 +27,6 @@ public partial class FormInscripcionEdit : Form
         cmbCondicion.Text = "Inscripto";
     }
 
-    // MODIFICACIÓN: el alumno y el curso no cambian; solo la condición y la nota.
     public FormInscripcionEdit(AlumnoInscripcionDTO existente, string nombreAlumno)
     {
         InitializeComponent();
