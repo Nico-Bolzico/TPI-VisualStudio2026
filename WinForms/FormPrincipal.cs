@@ -45,32 +45,11 @@ public partial class FormPrincipal : Form
         using var formMaterias = new FormMaterias();
         formMaterias.ShowDialog(this);
     }
+
     private void planesToolStripMenuItem_Click(object sender, EventArgs e)
     {
         using var formPlanes = new FormPlanes();
         formPlanes.ShowDialog(this);
-    }
-
-    private void cerrarSesionToolStripMenuItem_Click(object sender, EventArgs e)
-    {
-        DeseaCerrarSesion = true;
-        this.Close();
-    }
-
-    private void salirToolStripMenuItem_Click(object sender, EventArgs e)
-    {
-        DeseaCerrarSesion = false;
-        this.Close();
-    }
-
-    private void personasToolStripMenuItem1_Click(object sender, EventArgs e)
-    {
-
-    }
-
-    private void materiasToolStripMenuItem1_Click(object sender, EventArgs e)
-    {
-
     }
 
     private void comisionesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -93,6 +72,19 @@ public partial class FormPrincipal : Form
 
     private void reportePlanesDeEstudioToolStripMenuItem_Click(object sender, EventArgs e)
     {
-        MessageBox.Show("Reporte de Planes de estudio (próximamente).", "Reportes", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        using var reporte = new FormReportePlanes();
+        reporte.ShowDialog(this);
+    }
+
+    private void cerrarSesionToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        DeseaCerrarSesion = true;
+        this.Close();
+    }
+
+    private void salirToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        DeseaCerrarSesion = false;
+        this.Close();
     }
 }
