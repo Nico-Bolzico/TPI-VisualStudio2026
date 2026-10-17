@@ -7,13 +7,12 @@
 
 <div class="container-fluid py-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Gestión de Materias</h3>
-        @if (Session.TienePermiso("Materias", "Alta"))
-        {
-            <button class="btn btn-primary" @onclick="AbrirModalAlta">
-                + Nueva Materia
-            </button>
-        }
+        <div>
+            <h3 class="fw-bold mb-0">Catálogo de Materias</h3>
+            <span class="text-muted small">
+                Consulta, edición de carga horaria y bajas. El alta de nuevas materias se gestiona desde el Plan de Estudio.
+            </span>
+        </div>
     </div>
 
     @if (!string.IsNullOrEmpty(mensajeExito))
@@ -33,12 +32,12 @@
     }
 
     <!-- Búsqueda -->
-    <div class="card mb-3 shadow-sm">
+    <div class="card mb-3 shadow-sm border-0">
         <div class="card-body py-2">
             <div class="row g-2 align-items-center">
                 <div class="col-md-6 col-lg-4">
                     <input type="text" class="form-control" placeholder="Buscar por descripción de materia..."
-                           @bind="textoBusqueda" />
+                           @bind="textoBusqueda" @bind:event="oninput" @onkeydown="ManejarTeclaBusqueda" />
                 </div>
                 <div class="col-auto">
                     <button class="btn btn-outline-secondary" @onclick="BuscarAsync">Buscar</button>
@@ -69,7 +68,7 @@
                         <th>Descripción</th>
                         <th style="width: 140px;" class="text-center">Hs Semanales</th>
                         <th style="width: 140px;" class="text-center">Hs Totales</th>
-                        <th style="width: 100px;" class="text-center">Id Plan</th>
+                        <th>Plan de Estudio</th>
                         <th style="width: 170px;" class="text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -81,7 +80,7 @@
                             <td><strong>@m.Descripcion</strong></td>
                             <td class="text-center">@m.HsSemanales hs</td>
                             <td class="text-center">@m.HsTotales hs</td>
-                            <td class="text-center">@m.IdPlan</td>
+                            <td>@ObtenerNombrePlan(m.IdPlan)</td>
                             <td class="text-center">
                                 @if (Session.TienePermiso("Materias", "Modificar"))
                                 {
@@ -104,45 +103,46 @@
     }
 </div>
 
-<!-- ABM -->
+<!-- Modal de Modificación -->
 @if (mostrarModal)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">@(esModificacion ? "Modificar Materia" : "Nueva Materia")</h5>
+                    <h5 class="modal-title">Modificar Materia</h5>
                     <button type="button" class="btn-close btn-close-white" @onclick="CerrarModal"></button>
                 </div>
                 <div class="modal-body">
                     @if (!string.IsNullOrEmpty(mensajeErrorModal))
                     {
-                        <div class="alert alert-danger py-2">@mensajeErrorModal</div>
+                        <div class="alert alert-danger py-2 small">@mensajeErrorModal</div>
                     }
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Descripción *</label>
-                        <input type="text" class="form-control" @bind="materiaActual.Descripcion" placeholder="Ej: Sintaxis y Semántica de los Lenguajes" />
+                        <input type="text" class="form-control" @bind="materiaActual.Descripcion" placeholder="Ej: Análisis Matemático I" />
                     </div>
 
-                    <div class="row g-2">
-                        <div class="col-md-6 mb-2">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
                             <label class="form-label small fw-bold">Horas Semanales *</label>
-                            <input type="number" class="form-control" @bind="materiaActual.HsSemanales" />
+                            <input type="number" class="form-control" min="1" @bind="materiaActual.HsSemanales" />
                         </div>
-                        <div class="col-md-6 mb-2">
+                        <div class="col-md-6">
                             <label class="form-label small fw-bold">Horas Totales *</label>
-                            <input type="number" class="form-control" @bind="materiaActual.HsTotales" />
+                            <input type="number" class="form-control" min="1" @bind="materiaActual.HsTotales" />
                         </div>
-                        <div class="col-12 mb-2">
-                            <label class="form-label small fw-bold">Id Plan *</label>
-                            <input type="number" class="form-control" @bind="materiaActual.IdPlan" />
-                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Plan de Estudio Asignado</label>
+                        <input type="text" class="form-control bg-light" value="@ObtenerNombrePlan(materiaActual.IdPlan)" disabled />
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" @onclick="GuardarAsync">Guardar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarAsync">Guardar Cambios</button>
                 </div>
             </div>
         </div>
@@ -151,24 +151,38 @@
 
 @code {
     private List<MateriaDTO>? materias;
+    private List<PlanDTO> planes = new();
     private MateriaDTO materiaActual = new();
     private string textoBusqueda = string.Empty;
     private bool cargando = true;
     private bool mostrarModal = false;
-    private bool esModificacion = false;
     private string? mensajeExito;
     private string? mensajeError;
     private string? mensajeErrorModal;
 
     protected override async Task OnInitializedAsync()
     {
-        if (!Session.EstaAutenticado)
+        if (!Session.EstaAutenticado || !Session.TienePermiso("Materias", "Consultar"))
         {
             Navigation.NavigateTo("/");
             return;
         }
 
+        await CargarPlanesAsync();
         await CargarGrillaAsync();
+    }
+
+    private async Task CargarPlanesAsync()
+    {
+        try
+        {
+            var resultado = await Session.HttpClient.GetFromJsonAsync<IEnumerable<PlanDTO>>("planes");
+            planes = resultado?.ToList() ?? new List<PlanDTO>();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al cargar planes: {ex.Message}";
+        }
     }
 
     private async Task CargarGrillaAsync()
@@ -216,29 +230,28 @@
         }
     }
 
+    private async Task ManejarTeclaBusqueda(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await BuscarAsync();
+        }
+    }
+
     private async Task MostrarTodosAsync()
     {
         textoBusqueda = string.Empty;
         await CargarGrillaAsync();
     }
 
-
-    private void AbrirModalAlta()
+    private string ObtenerNombrePlan(int idPlan)
     {
-        esModificacion = false;
-        mensajeErrorModal = null;
-        materiaActual = new MateriaDTO
-        {
-            HsSemanales = 4,
-            HsTotales = 64,
-            IdPlan = 1
-        };
-        mostrarModal = true;
+        var plan = planes.FirstOrDefault(p => p.Id == idPlan);
+        return plan != null ? plan.Descripcion : $"Plan #{idPlan}";
     }
 
     private void AbrirModalModificar(MateriaDTO materia)
     {
-        esModificacion = true;
         mensajeErrorModal = null;
         materiaActual = new MateriaDTO
         {
@@ -279,24 +292,9 @@
             return;
         }
 
-        if (materiaActual.IdPlan <= 0)
-        {
-            mensajeErrorModal = "El Id de Plan debe ser mayor que 0.";
-            return;
-        }
-
         try
         {
-            HttpResponseMessage response;
-
-            if (esModificacion)
-            {
-                response = await Session.HttpClient.PutAsJsonAsync("materias", materiaActual);
-            }
-            else
-            {
-                response = await Session.HttpClient.PostAsJsonAsync("materias", materiaActual);
-            }
+            var response = await Session.HttpClient.PutAsJsonAsync("materias", materiaActual);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -306,7 +304,7 @@
             }
 
             mostrarModal = false;
-            mensajeExito = esModificacion ? "Materia modificada con éxito." : "Materia agregada con éxito.";
+            mensajeExito = "Materia modificada con éxito.";
             await CargarGrillaAsync();
         }
         catch (Exception ex)
