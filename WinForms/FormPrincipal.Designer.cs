@@ -1,4 +1,4 @@
-﻿namespace WinForms
+namespace WinForms
 {
     partial class FormPrincipal
     {
@@ -33,18 +33,21 @@
             personasToolStripMenuItem = new ToolStripMenuItem();
             materiasToolStripMenuItem = new ToolStripMenuItem();
             planesToolStripMenuItem = new ToolStripMenuItem();
+            comisionesToolStripMenuItem = new ToolStripMenuItem();
             cursosToolStripMenuItem = new ToolStripMenuItem();
             sesionToolStripMenuItem = new ToolStripMenuItem();
             cerrarSesionToolStripMenuItem = new ToolStripMenuItem();
             salirToolStripMenuItem = new ToolStripMenuItem();
             reportesToolStripMenuItem = new ToolStripMenuItem();
+            reporteCursosPorCupoToolStripMenuItem = new ToolStripMenuItem();
+            reportePlanesDeEstudioToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
             // 
             menuStrip1.ImageScalingSize = new Size(20, 20);
-            menuStrip1.Items.AddRange(new ToolStripItem[] { gestionToolStripMenuItem, sesionToolStripMenuItem, reportesToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { gestionToolStripMenuItem, reportesToolStripMenuItem, sesionToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(800, 28);
@@ -53,7 +56,7 @@
             // 
             // gestionToolStripMenuItem
             // 
-            gestionToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { personasToolStripMenuItem, materiasToolStripMenuItem, planesToolStripMenuItem, cursosToolStripMenuItem });
+            gestionToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { personasToolStripMenuItem, materiasToolStripMenuItem, planesToolStripMenuItem, comisionesToolStripMenuItem, cursosToolStripMenuItem });
             gestionToolStripMenuItem.Name = "gestionToolStripMenuItem";
             gestionToolStripMenuItem.Size = new Size(73, 24);
             gestionToolStripMenuItem.Text = "Gestión";
@@ -61,28 +64,35 @@
             // personasToolStripMenuItem
             // 
             personasToolStripMenuItem.Name = "personasToolStripMenuItem";
-            personasToolStripMenuItem.Size = new Size(149, 26);
+            personasToolStripMenuItem.Size = new Size(169, 26);
             personasToolStripMenuItem.Text = "Personas";
             personasToolStripMenuItem.Click += personasToolStripMenuItem_Click;
             // 
             // materiasToolStripMenuItem
             // 
             materiasToolStripMenuItem.Name = "materiasToolStripMenuItem";
-            materiasToolStripMenuItem.Size = new Size(149, 26);
+            materiasToolStripMenuItem.Size = new Size(169, 26);
             materiasToolStripMenuItem.Text = "Materias";
             materiasToolStripMenuItem.Click += materiasToolStripMenuItem_Click;
             // 
             // planesToolStripMenuItem
             // 
             planesToolStripMenuItem.Name = "planesToolStripMenuItem";
-            planesToolStripMenuItem.Size = new Size(149, 26);
+            planesToolStripMenuItem.Size = new Size(169, 26);
             planesToolStripMenuItem.Text = "Planes";
             planesToolStripMenuItem.Click += planesToolStripMenuItem_Click;
+            // 
+            // comisionesToolStripMenuItem
+            // 
+            comisionesToolStripMenuItem.Name = "comisionesToolStripMenuItem";
+            comisionesToolStripMenuItem.Size = new Size(169, 26);
+            comisionesToolStripMenuItem.Text = "Comisiones";
+            comisionesToolStripMenuItem.Click += comisionesToolStripMenuItem_Click;
             // 
             // cursosToolStripMenuItem
             // 
             cursosToolStripMenuItem.Name = "cursosToolStripMenuItem";
-            cursosToolStripMenuItem.Size = new Size(149, 26);
+            cursosToolStripMenuItem.Size = new Size(169, 26);
             cursosToolStripMenuItem.Text = "Cursos";
             cursosToolStripMenuItem.Click += cursosToolStripMenuItem_Click;
             // 
@@ -109,10 +119,24 @@
             // 
             // reportesToolStripMenuItem
             // 
+            reportesToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { reporteCursosPorCupoToolStripMenuItem, reportePlanesDeEstudioToolStripMenuItem });
             reportesToolStripMenuItem.Name = "reportesToolStripMenuItem";
             reportesToolStripMenuItem.Size = new Size(82, 24);
             reportesToolStripMenuItem.Text = "Reportes";
-            reportesToolStripMenuItem.Click += reportesToolStripMenuItem_Click;
+            // 
+            // reporteCursosPorCupoToolStripMenuItem
+            // 
+            reporteCursosPorCupoToolStripMenuItem.Name = "reporteCursosPorCupoToolStripMenuItem";
+            reporteCursosPorCupoToolStripMenuItem.Size = new Size(295, 26);
+            reporteCursosPorCupoToolStripMenuItem.Text = "Reporte de cursos (por cupo)";
+            reporteCursosPorCupoToolStripMenuItem.Click += reporteCursosPorCupoToolStripMenuItem_Click;
+            // 
+            // reportePlanesDeEstudioToolStripMenuItem
+            // 
+            reportePlanesDeEstudioToolStripMenuItem.Name = "reportePlanesDeEstudioToolStripMenuItem";
+            reportePlanesDeEstudioToolStripMenuItem.Size = new Size(295, 26);
+            reportePlanesDeEstudioToolStripMenuItem.Text = "Reporte de Planes de estudio";
+            reportePlanesDeEstudioToolStripMenuItem.Click += reportePlanesDeEstudioToolStripMenuItem_Click;
             // 
             // FormPrincipal
             // 
@@ -140,7 +164,10 @@
         private ToolStripMenuItem cerrarSesionToolStripMenuItem;
         private ToolStripMenuItem salirToolStripMenuItem;
         private ToolStripMenuItem planesToolStripMenuItem;
+        private ToolStripMenuItem comisionesToolStripMenuItem;
         private ToolStripMenuItem cursosToolStripMenuItem;
         private ToolStripMenuItem reportesToolStripMenuItem;
+        private ToolStripMenuItem reporteCursosPorCupoToolStripMenuItem;
+        private ToolStripMenuItem reportePlanesDeEstudioToolStripMenuItem;
     }
 }

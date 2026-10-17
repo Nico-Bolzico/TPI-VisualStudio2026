@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -23,7 +23,15 @@ public partial class FormPrincipal : Form
     {
         this.Text = $"TPI Academia - Conectado como: {ApiSession.UsuarioActual?.NombreUsuario}";
         planesToolStripMenuItem.Visible = ApiSession.TienePermiso("Planes", "Consultar");
+        comisionesToolStripMenuItem.Visible = ApiSession.TienePermiso("Comisiones", "Consultar");
         cursosToolStripMenuItem.Visible = ApiSession.TienePermiso("Cursos", "Consultar");
+
+        bool puedeVerCursos = ApiSession.TienePermiso("Cursos", "Consultar");
+        bool puedeVerPlanes = ApiSession.TienePermiso("Planes", "Consultar");
+
+        reporteCursosPorCupoToolStripMenuItem.Visible = puedeVerCursos;
+        reportePlanesDeEstudioToolStripMenuItem.Visible = puedeVerPlanes;
+        reportesToolStripMenuItem.Visible = puedeVerCursos || puedeVerPlanes;
     }
 
     private void personasToolStripMenuItem_Click(object sender, EventArgs e)
@@ -65,15 +73,26 @@ public partial class FormPrincipal : Form
 
     }
 
+    private void comisionesToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        using var formComisiones = new FormComisiones();
+        formComisiones.ShowDialog(this);
+    }
+
     private void cursosToolStripMenuItem_Click(object sender, EventArgs e)
     {
         using var formCursos = new FormCursos();
         formCursos.ShowDialog(this);
     }
 
-    private void reportesToolStripMenuItem_Click(object sender, EventArgs e)
+    private void reporteCursosPorCupoToolStripMenuItem_Click(object sender, EventArgs e)
     {
         using var reporte = new GraficoInscriptosContraCupo();
         reporte.ShowDialog(this);
+    }
+
+    private void reportePlanesDeEstudioToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        MessageBox.Show("Reporte de Planes de estudio (próximamente).", "Reportes", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 }
