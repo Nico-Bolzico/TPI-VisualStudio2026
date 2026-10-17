@@ -1,0 +1,364 @@
+@page "/comisiones"
+@inject APISession Session
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Comisiones - TPI Academia</PageTitle>
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-bold">Gestión de Comisiones</h3>
+        @if (Session.TienePermiso("Comisiones", "Alta"))
+        {
+            <button class="btn btn-primary" @onclick="AbrirModalAlta">
+                + Nueva Comisión
+            </button>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensajeExito))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @mensajeExito
+            <button type="button" class="btn-close" @onclick="() => mensajeExito = null"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(mensajeError))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @mensajeError
+            <button type="button" class="btn-close" @onclick="() => mensajeError = null"></button>
+        </div>
+    }
+
+    <!-- Búsqueda -->
+    <div class="card mb-3 shadow-sm border-0">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-6 col-lg-4">
+                    <input type="text" class="form-control" placeholder="Buscar por código de comisión..."
+                           @bind="textoBusqueda" @bind:event="oninput" @onkeydown="ManejarTeclaBusqueda" />
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-secondary" @onclick="BuscarAsync">Buscar</button>
+                    <button class="btn btn-link text-decoration-none" @onclick="MostrarTodasAsync">Mostrar todas</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grilla de Comisiones -->
+    @if (cargando)
+    {
+        <p class="text-muted py-3">Cargando comisiones...</p>
+    }
+    else if (comisiones == null || !comisiones.Any())
+    {
+        <div class="alert alert-warning">
+            No se encontraron comisiones registradas.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive shadow-sm">
+            <table class="table table-striped table-hover table-bordered align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 70px;">Id</th>
+                        <th>Código / Descripción</th>
+                        <th style="width: 150px;" class="text-center">Año de Cursada</th>
+                        <th>Plan de Estudio</th>
+                        <th style="width: 170px;" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in comisiones)
+                    {
+                        <tr>
+                            <td>@c.Id</td>
+                            <td><strong>@c.Descripcion</strong></td>
+                            <td class="text-center">@c.AnioEspecialidad ° Año</td>
+                            <td>@ObtenerNombrePlan(c.IdPlan)</td>
+                            <td class="text-center">
+                                @if (Session.TienePermiso("Comisiones", "Modificar"))
+                                {
+                                    <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => AbrirModalModificar(c)">
+                                        Editar
+                                    </button>
+                                }
+                                @if (Session.TienePermiso("Comisiones", "Baja"))
+                                {
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => EliminarAsync(c)">
+                                        Eliminar
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Modal de Alta / Modificación -->
+@if (mostrarModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">@(esModificacion ? "Modificar Comisión" : "Nueva Comisión")</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CerrarModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(mensajeErrorModal))
+                    {
+                        <div class="alert alert-danger py-2 small">@mensajeErrorModal</div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Código / Nombre de la Comisión *</label>
+                        <input type="text" class="form-control" @bind="comisionActual.Descripcion" placeholder="Ej: 1K1, 1K2, 2K1..." />
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Año de Cursada (1 a 6) *</label>
+                            <input type="number" class="form-control" min="1" max="6" @bind="comisionActual.AnioEspecialidad" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Plan de Estudio *</label>
+                            <select class="form-select" @bind="comisionActual.IdPlan">
+                                <option value="0">-- Seleccione un Plan --</option>
+                                @foreach (var plan in planes)
+                                {
+                                    <option value="@plan.Id">@plan.Descripcion</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarAsync">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<ComisionDTO>? comisiones;
+    private List<PlanDTO> planes = new();
+    private ComisionDTO comisionActual = new();
+    private string textoBusqueda = string.Empty;
+    private bool cargando = true;
+    private bool mostrarModal = false;
+    private bool esModificacion = false;
+    private string? mensajeExito;
+    private string? mensajeError;
+    private string? mensajeErrorModal;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.EstaAutenticado || !Session.TienePermiso("Comisiones", "Consultar"))
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        await CargarPlanesAsync();
+        await CargarGrillaAsync();
+    }
+
+    private async Task CargarPlanesAsync()
+    {
+        try
+        {
+            var resultado = await Session.HttpClient.GetFromJsonAsync<IEnumerable<PlanDTO>>("planes");
+            planes = resultado?.ToList() ?? new List<PlanDTO>();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al cargar planes de estudio: {ex.Message}";
+        }
+    }
+
+    private async Task CargarGrillaAsync()
+    {
+        try
+        {
+            cargando = true;
+            mensajeError = null;
+
+            var resultado = await Session.HttpClient.GetFromJsonAsync<IEnumerable<ComisionDTO>>("comisiones");
+            comisiones = resultado?.ToList() ?? new List<ComisionDTO>();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al cargar comisiones: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task BuscarAsync()
+    {
+        if (string.IsNullOrWhiteSpace(textoBusqueda))
+        {
+            await CargarGrillaAsync();
+            return;
+        }
+
+        try
+        {
+            cargando = true;
+            string textoCodificado = Uri.EscapeDataString(textoBusqueda.Trim());
+            var resultado = await Session.HttpClient.GetFromJsonAsync<IEnumerable<ComisionDTO>>($"comisiones/criteria?texto={textoCodificado}");
+            comisiones = resultado?.ToList() ?? new List<ComisionDTO>();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error en la búsqueda: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task ManejarTeclaBusqueda(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await BuscarAsync();
+        }
+    }
+
+    private async Task MostrarTodasAsync()
+    {
+        textoBusqueda = string.Empty;
+        await CargarGrillaAsync();
+    }
+
+    private string ObtenerNombrePlan(int idPlan)
+    {
+        var plan = planes.FirstOrDefault(p => p.Id == idPlan);
+        return plan != null ? plan.Descripcion : $"Plan #{idPlan}";
+    }
+
+    private void AbrirModalAlta()
+    {
+        esModificacion = false;
+        mensajeErrorModal = null;
+        comisionActual = new ComisionDTO
+        {
+            AnioEspecialidad = 1,
+            IdPlan = planes.FirstOrDefault()?.Id ?? 0
+        };
+        mostrarModal = true;
+    }
+
+    private void AbrirModalModificar(ComisionDTO comision)
+    {
+        esModificacion = true;
+        mensajeErrorModal = null;
+        comisionActual = new ComisionDTO
+        {
+            Id = comision.Id,
+            Descripcion = comision.Descripcion,
+            AnioEspecialidad = comision.AnioEspecialidad,
+            IdPlan = comision.IdPlan
+        };
+        mostrarModal = true;
+    }
+
+    private void CerrarModal()
+    {
+        mostrarModal = false;
+        mensajeErrorModal = null;
+    }
+
+    private async Task GuardarAsync()
+    {
+        mensajeErrorModal = null;
+
+        if (string.IsNullOrWhiteSpace(comisionActual.Descripcion))
+        {
+            mensajeErrorModal = "El código o descripción de la comisión es obligatorio.";
+            return;
+        }
+
+        if (comisionActual.AnioEspecialidad < 1 || comisionActual.AnioEspecialidad > 6)
+        {
+            mensajeErrorModal = "El año de cursada debe estar entre 1 y 6.";
+            return;
+        }
+
+        if (comisionActual.IdPlan <= 0)
+        {
+            mensajeErrorModal = "Debe seleccionar un plan de estudio válido.";
+            return;
+        }
+
+        try
+        {
+            HttpResponseMessage response;
+
+            if (esModificacion)
+            {
+                response = await Session.HttpClient.PutAsJsonAsync("comisiones", comisionActual);
+            }
+            else
+            {
+                response = await Session.HttpClient.PostAsJsonAsync("comisiones", comisionActual);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensajeErrorModal = $"No se pudo guardar la comisión: {error}";
+                return;
+            }
+
+            mostrarModal = false;
+            mensajeExito = esModificacion ? "Comisión modificada con éxito." : "Comisión agregada con éxito.";
+            await CargarGrillaAsync();
+        }
+        catch (Exception ex)
+        {
+            mensajeErrorModal = $"Error al guardar: {ex.Message}";
+        }
+    }
+
+    private async Task EliminarAsync(ComisionDTO comision)
+    {
+        bool confirma = await JS.InvokeAsync<bool>("confirm", 
+            $"¿Confirma que desea eliminar la comisión \"{comision.Descripcion}\"?");
+
+        if (!confirma) return;
+
+        try
+        {
+            var response = await Session.HttpClient.DeleteAsync($"comisiones/{comision.Id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensajeError = $"No se pudo eliminar la comisión: {error}";
+                return;
+            }
+
+            mensajeExito = "Comisión eliminada con éxito.";
+            await CargarGrillaAsync();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al eliminar: {ex.Message}";
+        }
+    }
+}
