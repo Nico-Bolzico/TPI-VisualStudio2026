@@ -1,6 +1,21 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
+<Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(Layout.MainLayout)">
+            <div class="container py-5 text-center">
+                <div class="card shadow-sm mx-auto" style="max-width: 500px;">
+                    <div class="card-body p-4 text-center">
+                        <h4 class="card-title fw-bold">Módulo en Construcción</h4>
+                        <p class="card-text text-muted">
+                            Esta funcionalidad se implementará en el siguiente paso de la migración.
+                        </p>
+                        <a href="" class="btn btn-primary">Volver al Inicio</a>
+                    </div>
+                </div>
+            </div>
+        </LayoutView>
+    </NotFound>
 </Router>

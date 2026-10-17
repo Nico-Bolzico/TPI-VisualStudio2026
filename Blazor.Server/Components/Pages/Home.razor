@@ -6,81 +6,197 @@
 
 <div class="container py-4">
     <div class="text-center mb-4">
-        <h2>Sistema de Gestión Académica (SGA)</h2>
+        <h2 class="fw-bold">Sistema de Gestión Académica (SGA)</h2>
+        <p class="text-muted">Universidad Tecnológica Nacional - Facultad Regional Rosario</p>
     </div>
 
     @if (Session.EstaAutenticado)
     {
-        <div class="alert alert-success shadow-sm">
-            <h5 class="alert-heading">¡Sesión iniciada con éxito!</h5>
-            <p class="mb-0">
-                Bienvenido, <strong>@Session.UsuarioActual?.Nombre @Session.UsuarioActual?.Apellido</strong> 
-                (Usuario: <code>@Session.UsuarioActual?.NombreUsuario</code>).
-            </p>
-        </div>
-
-        <div class="row g-3 mt-2">
-            <div class="col-md-6">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Gestión de Personas</h5>
-                        <a href="personas" class="btn btn-primary">Ir a Personas</a>
-                    </div>
-                </div>
+        <!-- Cartel de bienvenida y usuario conectado -->
+        <div class="alert alert-success shadow-sm d-flex flex-wrap justify-content-between align-items-center mb-4">
+            <div>
+                <h5 class="alert-heading mb-1">Bienvenido, @Session.UsuarioActual?.Nombre @Session.UsuarioActual?.Apellido</h5>
+                <p class="mb-0 text-muted small">
+                    Sesión activa con el usuario: <code>@Session.UsuarioActual?.NombreUsuario</code> | Email: <em>@Session.UsuarioActual?.Email</em>
+                </p>
             </div>
-            <div class="col-md-6">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Gestión de Materias</h5>
-                        <a href="materias" class="btn btn-primary">Ir a Materias</a>
-                    </div>
-                </div>
+            <div>
+                <button class="btn btn-outline-danger btn-sm mt-2 mt-sm-0" @onclick="CerrarSesion">
+                    Cerrar Sesión
+                </button>
             </div>
         </div>
 
-        <div class="mt-4 pt-3 border-top text-end">
-            <button class="btn btn-danger" @onclick="CerrarSesion">
-                Cerrar Sesión
-            </button>
+        <!-- SECCIÓN 1: GESTIÓN ACADÉMICA -->
+        <h5 class="text-secondary border-bottom pb-2 mb-3">Módulos de Gestión</h5>
+        <div class="row g-3 mb-4">
+            @if (Session.TienePermiso("Personas", "Consultar"))
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 bg-light">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-primary">Personas</h5>
+                            <p class="card-text text-muted small flex-grow-1">
+                                Administración de alumnos, docentes y no docentes. Consulta con ADO.NET y EF Core.
+                            </p>
+                            <a href="personas" class="btn btn-primary btn-sm">Abrir Personas</a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (Session.TienePermiso("Materias", "Consultar"))
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 bg-light">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-primary">Materias</h5>
+                            <p class="card-text text-muted small flex-grow-1">
+                                Catálogo de asignaturas, definición de horas semanales y horas totales.
+                            </p>
+                            <a href="materias" class="btn btn-primary btn-sm">Abrir Materias</a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (Session.TienePermiso("Planes", "Consultar"))
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 bg-light">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-primary">Planes de Estudio</h5>
+                            <p class="card-text text-muted small flex-grow-1">
+                                Maestro/Detalle de planes curriculares y asignación de materias por año.
+                            </p>
+                            <a href="planes" class="btn btn-primary btn-sm">Abrir Planes</a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (Session.TienePermiso("Comisiones", "Consultar"))
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 bg-light">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-primary">Comisiones</h5>
+                            <p class="card-text text-muted small flex-grow-1">
+                                Registro de divisiones asignadas por año y plan de estudio.
+                            </p>
+                            <a href="comisiones" class="btn btn-primary btn-sm">Abrir Comisiones</a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (Session.TienePermiso("Cursos", "Consultar"))
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 bg-light">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-primary">Cursos</h5>
+                            <p class="card-text text-muted small flex-grow-1">
+                                Comisiones dictadas, asignación docente, control de cupos y carga de calificaciones.
+                            </p>
+                            <a href="cursos" class="btn btn-primary btn-sm">Abrir Cursos</a>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
+
+        <!-- SECCIÓN 2: REPORTES Y ESTADÍSTICAS -->
+        @if (Session.TienePermiso("Cursos", "Consultar") || Session.TienePermiso("Planes", "Consultar"))
+        {
+            <h5 class="text-secondary border-bottom pb-2 mb-3">Reportes del Sistema</h5>
+            <div class="row g-3 mb-4">
+                @if (Session.TienePermiso("Cursos", "Consultar"))
+                {
+                    <div class="col-md-6">
+                        <div class="card h-100 shadow-sm border-0 bg-light">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title text-success">Ocupación y Cupos de Cursos</h5>
+                                <p class="card-text text-muted small flex-grow-1">
+                                    Reporte gráfico interactivo de alumnos inscriptos contra el cupo máximo por curso.
+                                </p>
+                                <a href="reporte-cursos" class="btn btn-success btn-sm">Ver Reporte Gráfico</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (Session.TienePermiso("Planes", "Consultar"))
+                {
+                    <div class="col-md-6">
+                        <div class="card h-100 shadow-sm border-0 bg-light">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title text-success">Planes y Carga Horaria</h5>
+                                <p class="card-text text-muted small flex-grow-1">
+                                    Reporte de materias y horas por plan con función directa de exportación a PDF.
+                                </p>
+                                <a href="reporte-planes" class="btn btn-success btn-sm">Ver Reporte Planes</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
     }
     else
     {
+        <!-- Formulario de Iniciar Sesión -->
         <div class="row justify-content-center mt-3">
             <div class="col-md-6 col-lg-5">
-                <div class="card shadow-sm">
+                <div class="card shadow-sm border-0">
                     <div class="card-header bg-primary text-white text-center py-3">
-                        <h4 class="mb-0">Iniciar Sesión</h4>
+                        <h4 class="mb-0 fw-bold">Iniciar Sesión</h4>
                     </div>
                     <div class="card-body p-4">
                         <div class="alert alert-info py-2 small mb-3">
-                            <strong>Usuario precargado en base:</strong><br />
-                            Usuario: <code>admin</code><br />
-                            Contraseña: <code>admin123</code>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small">Nombre de Usuario</label>
-                            <input type="text" class="form-control" @bind="request.NombreUsuario" placeholder="Ej: admin" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small">Contraseña</label>
-                            <input type="password" class="form-control" @bind="request.Password" placeholder="••••••••" />
-                        </div>
-
-                        @if (!string.IsNullOrEmpty(mensajeError))
-                        {
-                            <div class="alert alert-danger py-2" role="alert">
-                                @mensajeError
+                            <div class="fw-bold mb-1">Credenciales de prueba del sistema:</div>
+                            <div class="mb-1">
+                                <strong>Administrador:</strong> <code>admin</code> / <code>admin123</code><br />
+                                <span class="text-muted">(Control y gestión total de la facultad)</span>
                             </div>
-                        }
-
-                        <div class="d-grid gap-2 mt-4">
-                            <button class="btn btn-primary" @onclick="IngresarAsync">
-                                Ingresar
-                            </button>
+                            <div>
+                                <strong>Profesor:</strong> <code>profesor</code> / <code>profesor123</code><br />
+                                <span class="text-muted">(Consulta general y calificación de notas)</span>
+                            </div>
                         </div>
+
+                        <form @onsubmit="IngresarAsync">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small">Nombre de Usuario</label>
+                                <input type="text" class="form-control" @bind="request.NombreUsuario" placeholder="Ej: admin" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small">Contraseña</label>
+                                <input type="password" class="form-control" @bind="request.Password" placeholder="••••••••" />
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(mensajeError))
+                            {
+                                <div class="alert alert-danger py-2 small" role="alert">
+                                    @mensajeError
+                                </div>
+                            }
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary" disabled="@cargando">
+                                    @if (cargando)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                        <span>Iniciando sesión...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Ingresar</span>
+                                    }
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -91,6 +207,7 @@
 @code {
     private LoginRequestDTO request = new();
     private string? mensajeError;
+    private bool cargando = false;
 
     protected override void OnInitialized()
     {
@@ -114,6 +231,7 @@
 
         try
         {
+            cargando = true;
             var response = await Session.HttpClient.PostAsJsonAsync("login", request);
 
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -140,8 +258,11 @@
         {
             mensajeError = $"Error inesperado: {ex.Message}";
         }
+        finally
+        {
+            cargando = false;
+        }
     }
-
 
     private void CerrarSesion()
     {

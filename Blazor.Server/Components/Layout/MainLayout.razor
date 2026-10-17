@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@inject APISession Session
 
 <div class="page">
     <div class="sidebar">
@@ -6,8 +7,14 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+        <div class="top-row px-4 d-flex justify-content-between align-items-center">
+            <span class="text-secondary fw-semibold">Sistema de Gestión Académica - UTN FRRo</span>
+            @if (Session.EstaAutenticado)
+            {
+                <span class="text-muted small">
+                    Usuario: <strong class="text-dark">@Session.UsuarioActual?.NombreUsuario</strong>
+                </span>
+            }
         </div>
 
         <article class="content px-4">
@@ -17,7 +24,7 @@
 </div>
 
 <div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
+    Se produjo un error no controlado.
+    <a href="" class="reload">Recargar</a>
+    <a class="dismiss">x</a>
 </div>

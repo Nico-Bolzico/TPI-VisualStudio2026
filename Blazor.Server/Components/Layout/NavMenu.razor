@@ -12,29 +12,105 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
+        <!-- Inicio siempre visible -->
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Inicio
+                Inicio
             </NavLink>
         </div>
 
         @if (Session.EstaAutenticado)
         {
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="personas">
-                    <span class="bi bi-people-fill" aria-hidden="true"></span> Personas
-                </NavLink>
+            <!-- SECCIÓN: GESTIÓN -->
+            <div class="px-3 pt-3 pb-1 text-uppercase text-white-50 fw-bold small">
+                Gestión
             </div>
 
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="materias">
-                    <span class="bi bi-book-fill" aria-hidden="true"></span> Materias
-                </NavLink>
-            </div>
+            @if (Session.TienePermiso("Personas", "Consultar"))
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="personas">
+                        Personas
+                    </NavLink>
+                </div>
+            }
 
-            <div class="nav-item px-3 mt-4 text-white-50 small">
-                Conectado como:
-                <div class="fw-bold text-white text-truncate">@Session.UsuarioActual?.NombreUsuario</div>
+            @if (Session.TienePermiso("Materias", "Consultar"))
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="materias">
+                        Materias
+                    </NavLink>
+                </div>
+            }
+
+            @if (Session.TienePermiso("Planes", "Consultar"))
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="planes">
+                        Planes
+                    </NavLink>
+                </div>
+            }
+
+            @if (Session.TienePermiso("Comisiones", "Consultar"))
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="comisiones">
+                        Comisiones
+                    </NavLink>
+                </div>
+            }
+
+            @if (Session.TienePermiso("Cursos", "Consultar"))
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="cursos">
+                        Cursos
+                    </NavLink>
+                </div>
+            }
+
+            <!-- SECCIÓN: REPORTES -->
+            @if (Session.TienePermiso("Cursos", "Consultar") || Session.TienePermiso("Planes", "Consultar"))
+            {
+                <div class="px-3 pt-3 pb-1 text-uppercase text-white-50 fw-bold small">
+                    Reportes
+                </div>
+
+                @if (Session.TienePermiso("Cursos", "Consultar"))
+                {
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="reporte-cursos">
+                            Cursos / Cupos
+                        </NavLink>
+                    </div>
+                }
+
+                @if (Session.TienePermiso("Planes", "Consultar"))
+                {
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="reporte-planes">
+                            Planes y Horas
+                        </NavLink>
+                    </div>
+                }
+            }
+
+            <!-- SECCIÓN: SESIÓN -->
+            <div class="px-3 pt-3 pb-1 text-uppercase text-white-50 fw-bold small">
+                Sesión
+            </div>
+            <div class="nav-item px-3 text-white small">
+                <div class="text-white-50">Conectado:</div>
+                <div class="fw-bold text-truncate">@Session.UsuarioActual?.NombreUsuario</div>
+                @if (!string.IsNullOrEmpty(Session.UsuarioActual?.Nombre))
+                {
+                    <div class="text-white-50 text-truncate small">@Session.UsuarioActual?.Nombre @Session.UsuarioActual?.Apellido</div>
+                }
+                <button class="btn btn-outline-light btn-sm w-100 mt-2" @onclick="CerrarSesion">
+                    Cerrar Sesión
+                </button>
             </div>
         }
     </nav>
@@ -43,7 +119,7 @@
 @code {
     protected override void OnInitialized()
     {
-        // Suscribirse a cambios en la sesión para que la navbar se actualice sola al loguearse/desloguearse
+        // Suscribirse al evento para que el menú reaccione inmediatamente al iniciar o cerrar sesión
         Session.OnChange += StateHasChanged;
     }
 
@@ -51,6 +127,10 @@
     {
         Session.OnChange -= StateHasChanged;
     }
+
+    private void CerrarSesion()
+    {
+        Session.CerrarSesion();
+        Navigation.NavigateTo("/");
+    }
 }
-
-
