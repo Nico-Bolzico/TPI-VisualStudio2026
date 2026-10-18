@@ -1,0 +1,1054 @@
+@page "/cursos"
+@inject APISession Session
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Cursos - TPI Academia</PageTitle>
+
+<div class="container-fluid py-3">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-0">Gestión de Cursos</h3>
+            <span class="text-muted small">
+                Comisiones en dictado, asignación de docentes, control de cupos y calificaciones (Maestro / Doble Detalle).
+            </span>
+        </div>
+        @if (Session.TienePermiso("Cursos", "Alta"))
+        {
+            <button class="btn btn-primary" @onclick="AbrirModalAltaCurso">
+                + Nuevo Curso
+            </button>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensajeExito))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @mensajeExito
+            <button type="button" class="btn-close" @onclick="() => mensajeExito = null"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(mensajeError))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @mensajeError
+            <button type="button" class="btn-close" @onclick="() => mensajeError = null"></button>
+        </div>
+    }
+
+    <!-- Búsqueda -->
+    <div class="card mb-3 shadow-sm border-0">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-6 col-lg-4">
+                    <input type="text" class="form-control" placeholder="Buscar por materia o comisión..."
+                           @bind="textoBusqueda" @bind:event="oninput" @onkeydown="ManejarTeclaBusqueda" />
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-secondary" @onclick="BuscarCursos">Buscar</button>
+                    <button class="btn btn-link text-decoration-none" @onclick="MostrarTodosCursos">Mostrar todos</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAESTRO: Grilla de Cursos -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-2">
+            <h6 class="mb-0 fw-bold">Cursos (Haga clic en una fila para gestionar inscriptos y docentes)</h6>
+            <span class="badge bg-secondary">@(cursosFiltrados.Count) cursos</span>
+        </div>
+        <div class="card-body p-0">
+            @if (cargando)
+            {
+                <p class="text-muted p-3 mb-0">Cargando cursos y referencias...</p>
+            }
+            else if (!cursosFiltrados.Any())
+            {
+                <div class="alert alert-warning m-3 mb-3">
+                    No se encontraron cursos registrados.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle mb-0">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th style="width: 70px;">Id</th>
+                                <th>Materia</th>
+                                <th>Comisión</th>
+                                <th style="width: 130px;" class="text-center">Año Calendario</th>
+                                <th style="width: 160px;" class="text-center">Cupo / Inscriptos</th>
+                                <th style="width: 170px;" class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var curso in cursosFiltrados)
+                            {
+                                var seleccionado = curso.Id == cursoSeleccionado?.Id;
+                                int cantInscriptos = ObtenerCantidadInscriptos(curso.Id);
+                                bool cupoAgotado = cantInscriptos >= curso.Cupo;
+
+                                <tr class="@(seleccionado ? "table-primary fw-semibold" : "")"
+                                    style="cursor: pointer;"
+                                    @onclick="() => SeleccionarCurso(curso)">
+                                    <td>@curso.Id</td>
+                                    <td><strong>@ObtenerNombreMateria(curso.IdMateria)</strong></td>
+                                    <td>@ObtenerNombreComision(curso.IdComision)</td>
+                                    <td class="text-center">@curso.AnioCalendario</td>
+                                    <td class="text-center">
+                                        @if (cupoAgotado)
+                                        {
+                                            <span class="badge bg-danger">@cantInscriptos / @curso.Cupo (Agotado)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">@cantInscriptos / @curso.Cupo</span>
+                                        }
+                                    </td>
+                                    <td class="text-center" @onclick:stopPropagation="true">
+                                        @if (Session.TienePermiso("Cursos", "Modificar"))
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => AbrirModalModificarCurso(curso)">
+                                                Editar
+                                            </button>
+                                        }
+                                        @if (Session.TienePermiso("Cursos", "Baja"))
+                                        {
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => EliminarCursoAsync(curso)">
+                                                Eliminar
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- DOBLE DETALLE: Pestañas de Inscriptos y Docentes -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light border-bottom py-2">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0 fw-bold">
+                    Detalles del Curso: 
+                    <span class="text-primary">
+                        @(cursoSeleccionado != null 
+                            ? $"{ObtenerNombreMateria(cursoSeleccionado.IdMateria)} - {ObtenerNombreComision(cursoSeleccionado.IdComision)} ({cursoSeleccionado.AnioCalendario})" 
+                            : "(Seleccione un curso arriba)")
+                    </span>
+                </h6>
+            </div>
+
+            <!-- Navegación de pestañas -->
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                    <button class="nav-link @(pestanaActiva == "inscriptos" ? "active fw-bold" : "")" 
+                            @onclick='() => pestanaActiva = "inscriptos"'>
+                        Alumnos Inscriptos (@(inscripcionesDelCurso.Count))
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link @(pestanaActiva == "docentes" ? "active fw-bold" : "")" 
+                            @onclick='() => pestanaActiva = "docentes"'>
+                        Docentes Asignados (@(docentesDelCurso.Count))
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card-body p-0">
+            @if (cursoSeleccionado == null)
+            {
+                <div class="p-4 text-center text-muted">
+                    Seleccione un curso de la grilla superior para inspeccionar alumnos inscriptos y docentes asignados.
+                </div>
+            }
+            else if (pestanaActiva == "inscriptos")
+            {
+                <!-- PESTAÑA 1: ALUMNOS INSCRIPTOS -->
+                <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+                    <span class="small text-muted">
+                        Calificaciones y condición académica del alumnado.
+                    </span>
+                    @if (Session.TienePermiso("Inscripciones", "Alta"))
+                    {
+                        <button class="btn btn-sm btn-success" @onclick="AbrirModalInscribirAlumno">
+                            + Inscribir Alumno
+                        </button>
+                    }
+                </div>
+
+                @if (cargandoDetalle)
+                {
+                    <p class="text-muted p-3 mb-0">Cargando inscripciones...</p>
+                }
+                else if (!inscripcionesDelCurso.Any())
+                {
+                    <div class="alert alert-info m-3 mb-3">
+                        No hay alumnos inscriptos en este curso actualmente.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped table-bordered align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Alumno</th>
+                                    <th style="width: 180px;" class="text-center">Condición</th>
+                                    <th style="width: 120px;" class="text-center">Nota</th>
+                                    <th style="width: 190px;" class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ins in inscripcionesDelCurso)
+                                {
+                                    <tr>
+                                        <td>@ObtenerNombrePersona(ins.IdAlumno, "Alumno")</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary">@ins.Condicion</span>
+                                        </td>
+                                        <td class="text-center">
+                                            @(ins.Nota.HasValue ? ins.Nota.Value.ToString() : "-")
+                                        </td>
+                                        <td class="text-center">
+                                            @if (Session.TienePermiso("Inscripciones", "Modificar"))
+                                            {
+                                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" 
+                                                        @onclick="() => AbrirModalModificarInscripcion(ins)">
+                                                    Editar / Calificar
+                                                </button>
+                                            }
+                                            @if (Session.TienePermiso("Inscripciones", "Baja"))
+                                            {
+                                                <button class="btn btn-sm btn-outline-danger py-0 px-2" 
+                                                        @onclick="() => EliminarInscripcionAsync(ins)">
+                                                    Quitar
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+            else if (pestanaActiva == "docentes")
+            {
+                <!-- PESTAÑA 2: DOCENTES ASIGNADOS -->
+                <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+                    <span class="small text-muted">
+                        Equipo docente a cargo del dictado de la comisión.
+                    </span>
+                    @if (Session.TienePermiso("DocentesCursos", "Alta"))
+                    {
+                        <button class="btn btn-sm btn-success" @onclick="AbrirModalAsignarDocente">
+                            + Asignar Docente
+                        </button>
+                    }
+                </div>
+
+                @if (cargandoDetalle)
+                {
+                    <p class="text-muted p-3 mb-0">Cargando docentes asignados...</p>
+                }
+                else if (!docentesDelCurso.Any())
+                {
+                    <div class="alert alert-info m-3 mb-3">
+                        No hay docentes asignados a este curso actualmente.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped table-bordered align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Docente</th>
+                                    <th style="width: 250px;" class="text-center">Cargo</th>
+                                    <th style="width: 190px;" class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var doc in docentesDelCurso)
+                                {
+                                    <tr>
+                                        <td>@ObtenerNombrePersona(doc.IdDocente, "Docente")</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-dark">@CargoDocenteDTO.Nombre(doc.Cargo)</span>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (Session.TienePermiso("DocentesCursos", "Modificar"))
+                                            {
+                                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" 
+                                                        @onclick="() => AbrirModalModificarDocente(doc)">
+                                                    Editar Cargo
+                                                </button>
+                                            }
+                                            @if (Session.TienePermiso("DocentesCursos", "Baja"))
+                                            {
+                                                <button class="btn btn-sm btn-outline-danger py-0 px-2" 
+                                                        @onclick="() => EliminarDocenteCursoAsync(doc)">
+                                                    Quitar
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 1: Alta / Modificación de Curso -->
+@if (mostrarModalCurso)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">@(esModificacionCurso ? "Modificar Curso" : "Nuevo Curso")</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => mostrarModalCurso = false"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(mensajeErrorModalCurso))
+                    {
+                        <div class="alert alert-danger py-2 small">@mensajeErrorModalCurso</div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Materia *</label>
+                        <select class="form-select" @bind="cursoEnEdicion.IdMateria">
+                            <option value="0">-- Seleccione Materia --</option>
+                            @foreach (var m in materias.OrderBy(mat => mat.Descripcion))
+                            {
+                                <option value="@m.Id">@m.Descripcion</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Comisión *</label>
+                        <select class="form-select" @bind="cursoEnEdicion.IdComision">
+                            <option value="0">-- Seleccione Comisión --</option>
+                            @foreach (var c in comisiones.OrderBy(com => com.Descripcion))
+                            {
+                                <option value="@c.Id">@c.Descripcion</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold">Año Calendario *</label>
+                            <input type="number" class="form-control" min="2000" max="2100" @bind="cursoEnEdicion.AnioCalendario" />
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold">Cupo Máximo *</label>
+                            <input type="number" class="form-control" min="1" max="500" @bind="cursoEnEdicion.Cupo" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="() => mostrarModalCurso = false">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarCursoAsync">Guardar Curso</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- MODAL 2: Alta / Modificación de Inscripción de Alumno -->
+@if (mostrarModalInscripcion)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">@(esModificacionInscripcion ? "Modificar Calificación / Condición" : "Inscribir Alumno a Curso")</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => mostrarModalInscripcion = false"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(mensajeErrorModalInscripcion))
+                    {
+                        <div class="alert alert-danger py-2 small">@mensajeErrorModalInscripcion</div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Alumno *</label>
+                        @if (esModificacionInscripcion)
+                        {
+                            <input type="text" class="form-control bg-light" value="@ObtenerNombrePersona(inscripcionEnEdicion.IdAlumno, "Alumno")" disabled />
+                        }
+                        else
+                        {
+                            <select class="form-select" @bind="inscripcionEnEdicion.IdAlumno">
+                                <option value="0">-- Seleccione Alumno --</option>
+                                @foreach (var a in alumnosDisponibles)
+                                {
+                                    <option value="@a.Id">@a.Apellido, @a.Nombre (Legajo @a.Legajo)</option>
+                                }
+                            </select>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Condición *</label>
+                        <select class="form-select" @bind="inscripcionEnEdicion.Condicion">
+                            <option value="Inscripto">Inscripto</option>
+                            <option value="Regular">Regular</option>
+                            <option value="Aprobado">Aprobado</option>
+                            <option value="Libre">Libre</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="chkNota" @bind="asignarNota" />
+                            <label class="form-check-label small fw-semibold" for="chkNota">
+                                Asignar Calificación / Nota
+                            </label>
+                        </div>
+                        @if (asignarNota)
+                        {
+                            <input type="number" class="form-control" min="1" max="10" @bind="notaTemporal" placeholder="Nota entre 1 y 10" />
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="() => mostrarModalInscripcion = false">Cancelar</button>
+                    <button type="button" class="btn btn-success" @onclick="GuardarInscripcionAsync">Guardar Inscripción</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- MODAL 3: Asignar / Modificar Docente del Curso -->
+@if (mostrarModalDocente)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">@(esModificacionDocente ? "Modificar Cargo Docente" : "Asignar Docente al Curso")</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => mostrarModalDocente = false"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(mensajeErrorModalDocente))
+                    {
+                        <div class="alert alert-danger py-2 small">@mensajeErrorModalDocente</div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Docente *</label>
+                        @if (esModificacionDocente)
+                        {
+                            <input type="text" class="form-control bg-light" value="@ObtenerNombrePersona(docenteEnEdicion.IdDocente, "Docente")" disabled />
+                        }
+                        else
+                        {
+                            <select class="form-select" @bind="docenteEnEdicion.IdDocente">
+                                <option value="0">-- Seleccione Docente --</option>
+                                @foreach (var p in profesoresDisponibles)
+                                {
+                                    <option value="@p.Id">@p.Apellido, @p.Nombre (Legajo @p.Legajo)</option>
+                                }
+                            </select>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Cargo *</label>
+                        <select class="form-select" @bind="docenteEnEdicion.Cargo">
+                            <option value="0">-- Seleccione Cargo --</option>
+                            @foreach (var cargo in CargoDocenteDTO.Todos)
+                            {
+                                <option value="@cargo.Key">@cargo.Value</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="() => mostrarModalDocente = false">Cancelar</button>
+                    <button type="button" class="btn btn-dark" @onclick="GuardarDocenteCursoAsync">Guardar Asignación</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    // Listas maestras y de referencia
+    private List<CursoDTO> todosLosCursos = new();
+    private List<MateriaDTO> materias = new();
+    private List<ComisionDTO> comisiones = new();
+    private List<PersonaDTO> personas = new();
+    private List<AlumnoInscripcionDTO> todasLasInscripciones = new();
+
+    // Detalle del curso seleccionado
+    private CursoDTO? cursoSeleccionado;
+    private List<AlumnoInscripcionDTO> inscripcionesDelCurso = new();
+    private List<DocenteCursoDTO> docentesDelCurso = new();
+    private string pestanaActiva = "inscriptos";
+
+    // Estados de UI
+    private string textoBusqueda = string.Empty;
+    private bool cargando = true;
+    private bool cargandoDetalle = false;
+    private string? mensajeExito;
+    private string? mensajeError;
+
+    // Modales
+    private bool mostrarModalCurso = false;
+    private bool esModificacionCurso = false;
+    private CursoDTO cursoEnEdicion = new();
+    private string? mensajeErrorModalCurso;
+
+    private bool mostrarModalInscripcion = false;
+    private bool esModificacionInscripcion = false;
+    private AlumnoInscripcionDTO inscripcionEnEdicion = new();
+    private bool asignarNota = false;
+    private int notaTemporal = 7;
+    private string? mensajeErrorModalInscripcion;
+
+    private bool mostrarModalDocente = false;
+    private bool esModificacionDocente = false;
+    private DocenteCursoDTO docenteEnEdicion = new();
+    private string? mensajeErrorModalDocente;
+
+    private IEnumerable<PersonaDTO> alumnosDisponibles => personas.Where(p => p.TipoPersona == "Alumno").OrderBy(p => p.Apellido);
+    private IEnumerable<PersonaDTO> profesoresDisponibles => personas.Where(p => p.TipoPersona == "Profesor").OrderBy(p => p.Apellido);
+
+    private List<CursoDTO> cursosFiltrados
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(textoBusqueda)) return todosLosCursos;
+
+            string filtro = textoBusqueda.Trim().ToLower();
+            return todosLosCursos.Where(c =>
+                ObtenerNombreMateria(c.IdMateria).ToLower().Contains(filtro) ||
+                ObtenerNombreComision(c.IdComision).ToLower().Contains(filtro)
+            ).ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.EstaAutenticado || !Session.TienePermiso("Cursos", "Consultar"))
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        await CargarReferenciasAsync();
+        await CargarCursosAsync();
+    }
+
+    private async Task CargarReferenciasAsync()
+    {
+        try
+        {
+            var tMaterias = Session.HttpClient.GetFromJsonAsync<List<MateriaDTO>>("materias");
+            var tComisiones = Session.HttpClient.GetFromJsonAsync<List<ComisionDTO>>("comisiones");
+            var tPersonas = Session.HttpClient.GetFromJsonAsync<List<PersonaDTO>>("personas");
+
+            await Task.WhenAll(tMaterias, tComisiones, tPersonas);
+
+            materias = await tMaterias ?? new();
+            comisiones = await tComisiones ?? new();
+            personas = await tPersonas ?? new();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al cargar referencias de cursos: {ex.Message}";
+        }
+    }
+
+    private async Task CargarCursosAsync()
+    {
+        try
+        {
+            cargando = true;
+            mensajeError = null;
+
+            todosLosCursos = await Session.HttpClient.GetFromJsonAsync<List<CursoDTO>>("cursos") ?? new();
+
+            try
+            {
+                todasLasInscripciones = await Session.HttpClient.GetFromJsonAsync<List<AlumnoInscripcionDTO>>("inscripciones") ?? new();
+            }
+            catch
+            {
+                todasLasInscripciones = new();
+            }
+
+            if (cursoSeleccionado != null)
+            {
+                cursoSeleccionado = todosLosCursos.FirstOrDefault(c => c.Id == cursoSeleccionado.Id) ?? todosLosCursos.FirstOrDefault();
+            }
+            else
+            {
+                cursoSeleccionado = todosLosCursos.FirstOrDefault();
+            }
+
+            if (cursoSeleccionado != null)
+            {
+                await CargarDetallesCursoAsync(cursoSeleccionado.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al cargar cursos: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task SeleccionarCurso(CursoDTO curso)
+    {
+        cursoSeleccionado = curso;
+        await CargarDetallesCursoAsync(curso.Id);
+    }
+
+    private async Task CargarDetallesCursoAsync(int idCurso)
+    {
+        cargandoDetalle = true;
+        try
+        {
+            var tInscripciones = Session.HttpClient.GetFromJsonAsync<List<AlumnoInscripcionDTO>>($"inscripciones/curso/{idCurso}");
+            var tDocentes = Session.HttpClient.GetFromJsonAsync<List<DocenteCursoDTO>>($"docentes-cursos/curso/{idCurso}");
+
+            await Task.WhenAll(tInscripciones, tDocentes);
+
+            inscripcionesDelCurso = await tInscripciones ?? new();
+            docentesDelCurso = await tDocentes ?? new();
+        }
+        catch
+        {
+            inscripcionesDelCurso = new();
+            docentesDelCurso = new();
+        }
+        finally
+        {
+            cargandoDetalle = false;
+        }
+    }
+
+    private int ObtenerCantidadInscriptos(int idCurso)
+    {
+        return todasLasInscripciones.Count(i => i.IdCurso == idCurso);
+    }
+
+    private string ObtenerNombreMateria(int idMateria)
+    {
+        return materias.FirstOrDefault(m => m.Id == idMateria)?.Descripcion ?? $"Materia #{idMateria}";
+    }
+
+    private string ObtenerNombreComision(int idComision)
+    {
+        return comisiones.FirstOrDefault(c => c.Id == idComision)?.Descripcion ?? $"Comisión #{idComision}";
+    }
+
+    private string ObtenerNombrePersona(int idPersona, string rol)
+    {
+        var p = personas.FirstOrDefault(pers => pers.Id == idPersona);
+        return p != null ? $"{p.Apellido}, {p.Nombre} (Legajo {p.Legajo})" : $"{rol} #{idPersona}";
+    }
+
+    private async Task BuscarCursos()
+    {
+        if (cursosFiltrados.Any() && (cursoSeleccionado == null || !cursosFiltrados.Any(c => c.Id == cursoSeleccionado.Id)))
+        {
+            await SeleccionarCurso(cursosFiltrados.First());
+        }
+    }
+
+    private async Task ManejarTeclaBusqueda(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await BuscarCursos();
+        }
+    }
+
+    private async Task MostrarTodosCursos()
+    {
+        textoBusqueda = string.Empty;
+        if (todosLosCursos.Any())
+        {
+            await SeleccionarCurso(todosLosCursos.First());
+        }
+    }
+
+    // Modal Curso
+    private void AbrirModalAltaCurso()
+    {
+        esModificacionCurso = false;
+        mensajeErrorModalCurso = null;
+
+        cursoEnEdicion = new CursoDTO
+        {
+            IdMateria = materias.FirstOrDefault()?.Id ?? 0,
+            IdComision = comisiones.FirstOrDefault()?.Id ?? 0,
+            AnioCalendario = DateTime.Now.Year,
+            Cupo = 30
+        };
+
+        mostrarModalCurso = true;
+    }
+
+    private void AbrirModalModificarCurso(CursoDTO curso)
+    {
+        esModificacionCurso = true;
+        mensajeErrorModalCurso = null;
+
+        cursoEnEdicion = new CursoDTO
+        {
+            Id = curso.Id,
+            IdMateria = curso.IdMateria,
+            IdComision = curso.IdComision,
+            AnioCalendario = curso.AnioCalendario,
+            Cupo = curso.Cupo
+        };
+
+        mostrarModalCurso = true;
+    }
+
+    private async Task GuardarCursoAsync()
+    {
+        mensajeErrorModalCurso = null;
+
+        if (cursoEnEdicion.IdMateria <= 0)
+        {
+            mensajeErrorModalCurso = "Debe seleccionar una materia.";
+            return;
+        }
+
+        if (cursoEnEdicion.IdComision <= 0)
+        {
+            mensajeErrorModalCurso = "Debe seleccionar una comisión.";
+            return;
+        }
+
+        if (cursoEnEdicion.Cupo <= 0)
+        {
+            mensajeErrorModalCurso = "El cupo debe ser mayor a 0.";
+            return;
+        }
+
+        try
+        {
+            HttpResponseMessage response;
+            if (esModificacionCurso)
+            {
+                response = await Session.HttpClient.PutAsJsonAsync("cursos", cursoEnEdicion);
+            }
+            else
+            {
+                response = await Session.HttpClient.PostAsJsonAsync("cursos", cursoEnEdicion);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                mensajeErrorModalCurso = await LeerErrorApiAsync(response);
+                return;
+            }
+
+            mostrarModalCurso = false;
+            mensajeExito = esModificacionCurso ? "Curso modificado con éxito." : "Curso creado con éxito.";
+            await CargarCursosAsync();
+        }
+        catch (Exception ex)
+        {
+            mensajeErrorModalCurso = $"Error al guardar el curso: {ex.Message}";
+        }
+    }
+
+    private async Task EliminarCursoAsync(CursoDTO curso)
+    {
+        int cantInscriptos = ObtenerCantidadInscriptos(curso.Id);
+        if (cantInscriptos > 0)
+        {
+            mensajeError = $"No se puede eliminar el curso: tiene {cantInscriptos} alumno(s) inscripto(s). Quite primero las inscripciones.";
+            return;
+        }
+
+        bool confirma = await JS.InvokeAsync<bool>("confirm", 
+            $"¿Confirma eliminar el curso \"{ObtenerNombreMateria(curso.IdMateria)}\" - Comisión {ObtenerNombreComision(curso.IdComision)}?");
+
+        if (!confirma) return;
+
+        try
+        {
+            var response = await Session.HttpClient.DeleteAsync($"cursos/{curso.Id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                mensajeError = await LeerErrorApiAsync(response);
+                return;
+            }
+
+            mensajeExito = "Curso eliminado con éxito.";
+            await CargarCursosAsync();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al eliminar el curso: {ex.Message}";
+        }
+    }
+
+    // Modal Inscripción
+    private void AbrirModalInscribirAlumno()
+    {
+        if (cursoSeleccionado == null) return;
+
+        esModificacionInscripcion = false;
+        mensajeErrorModalInscripcion = null;
+        asignarNota = false;
+        notaTemporal = 7;
+
+        inscripcionEnEdicion = new AlumnoInscripcionDTO
+        {
+            IdCurso = cursoSeleccionado.Id,
+            IdAlumno = alumnosDisponibles.FirstOrDefault()?.Id ?? 0,
+            Condicion = "Inscripto"
+        };
+
+        mostrarModalInscripcion = true;
+    }
+
+    private void AbrirModalModificarInscripcion(AlumnoInscripcionDTO ins)
+    {
+        esModificacionInscripcion = true;
+        mensajeErrorModalInscripcion = null;
+        asignarNota = ins.Nota.HasValue;
+        notaTemporal = ins.Nota ?? 7;
+
+        inscripcionEnEdicion = new AlumnoInscripcionDTO
+        {
+            Id = ins.Id,
+            IdCurso = ins.IdCurso,
+            IdAlumno = ins.IdAlumno,
+            Condicion = ins.Condicion,
+            Nota = ins.Nota
+        };
+
+        mostrarModalInscripcion = true;
+    }
+
+    private async Task GuardarInscripcionAsync()
+    {
+        mensajeErrorModalInscripcion = null;
+
+        if (inscripcionEnEdicion.IdAlumno <= 0)
+        {
+            mensajeErrorModalInscripcion = "Debe seleccionar un alumno.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(inscripcionEnEdicion.Condicion))
+        {
+            mensajeErrorModalInscripcion = "Debe seleccionar una condición.";
+            return;
+        }
+
+        inscripcionEnEdicion.Nota = asignarNota ? Math.Clamp(notaTemporal, 1, 10) : null;
+
+        try
+        {
+            HttpResponseMessage response;
+            if (esModificacionInscripcion)
+            {
+                response = await Session.HttpClient.PutAsJsonAsync("inscripciones", inscripcionEnEdicion);
+            }
+            else
+            {
+                response = await Session.HttpClient.PostAsJsonAsync("inscripciones", inscripcionEnEdicion);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                mensajeErrorModalInscripcion = await LeerErrorApiAsync(response);
+                return;
+            }
+
+            mostrarModalInscripcion = false;
+            mensajeExito = esModificacionInscripcion ? "Inscripción/Calificación guardada con éxito." : "Alumno inscripto con éxito.";
+            
+            if (cursoSeleccionado != null)
+            {
+                await CargarCursosAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeErrorModalInscripcion = $"Error al guardar inscripción: {ex.Message}";
+        }
+    }
+
+    private async Task EliminarInscripcionAsync(AlumnoInscripcionDTO ins)
+    {
+        string nombre = ObtenerNombrePersona(ins.IdAlumno, "Alumno");
+        bool confirma = await JS.InvokeAsync<bool>("confirm", 
+            $"¿Confirma quitar la inscripción de {nombre}?");
+
+        if (!confirma) return;
+
+        try
+        {
+            var response = await Session.HttpClient.DeleteAsync($"inscripciones/{ins.Id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                mensajeError = await LeerErrorApiAsync(response);
+                return;
+            }
+
+            mensajeExito = "Inscripción removida con éxito.";
+            await CargarCursosAsync();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al quitar inscripción: {ex.Message}";
+        }
+    }
+
+    // Modal Docente
+    private void AbrirModalAsignarDocente()
+    {
+        if (cursoSeleccionado == null) return;
+
+        esModificacionDocente = false;
+        mensajeErrorModalDocente = null;
+
+        docenteEnEdicion = new DocenteCursoDTO
+        {
+            IdCurso = cursoSeleccionado.Id,
+            IdDocente = profesoresDisponibles.FirstOrDefault()?.Id ?? 0,
+            Cargo = 1 // Titular por defecto
+        };
+
+        mostrarModalDocente = true;
+    }
+
+    private void AbrirModalModificarDocente(DocenteCursoDTO doc)
+    {
+        esModificacionDocente = true;
+        mensajeErrorModalDocente = null;
+
+        docenteEnEdicion = new DocenteCursoDTO
+        {
+            Id = doc.Id,
+            IdCurso = doc.IdCurso,
+            IdDocente = doc.IdDocente,
+            Cargo = doc.Cargo
+        };
+
+        mostrarModalDocente = true;
+    }
+
+    private async Task GuardarDocenteCursoAsync()
+    {
+        mensajeErrorModalDocente = null;
+
+        if (docenteEnEdicion.IdDocente <= 0)
+        {
+            mensajeErrorModalDocente = "Debe seleccionar un docente.";
+            return;
+        }
+
+        if (docenteEnEdicion.Cargo <= 0)
+        {
+            mensajeErrorModalDocente = "Debe seleccionar un cargo docente.";
+            return;
+        }
+
+        try
+        {
+            HttpResponseMessage response;
+            if (esModificacionDocente)
+            {
+                response = await Session.HttpClient.PutAsJsonAsync("docentes-cursos", docenteEnEdicion);
+            }
+            else
+            {
+                response = await Session.HttpClient.PostAsJsonAsync("docentes-cursos", docenteEnEdicion);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                mensajeErrorModalDocente = await LeerErrorApiAsync(response);
+                return;
+            }
+
+            mostrarModalDocente = false;
+            mensajeExito = esModificacionDocente ? "Cargo docente modificado con éxito." : "Docente asignado con éxito.";
+            
+            if (cursoSeleccionado != null)
+            {
+                await CargarCursosAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeErrorModalDocente = $"Error al asignar docente: {ex.Message}";
+        }
+    }
+
+    private async Task EliminarDocenteCursoAsync(DocenteCursoDTO doc)
+    {
+        string nombre = ObtenerNombrePersona(doc.IdDocente, "Docente");
+        bool confirma = await JS.InvokeAsync<bool>("confirm", 
+            $"¿Confirma quitar a {nombre} de este curso?");
+
+        if (!confirma) return;
+
+        try
+        {
+            var response = await Session.HttpClient.DeleteAsync($"docentes-cursos/{doc.Id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                mensajeError = await LeerErrorApiAsync(response);
+                return;
+            }
+
+            mensajeExito = "Docente removido del curso con éxito.";
+            await CargarCursosAsync();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al quitar docente: {ex.Message}";
+        }
+    }
+
+    private static async Task<string> LeerErrorApiAsync(HttpResponseMessage response)
+    {
+        try
+        {
+            var json = await response.Content.ReadFromJsonAsync<System.Text.Json.Nodes.JsonObject>();
+            if (json != null && json.TryGetPropertyValue("error", out var errorNode))
+            {
+                return errorNode?.ToString() ?? "Error en la operación.";
+            }
+        }
+        catch
+        {
+        }
+        var texto = await response.Content.ReadAsStringAsync();
+        return string.IsNullOrWhiteSpace(texto) ? response.ReasonPhrase ?? "Error en la operación." : texto;
+    }
+}
