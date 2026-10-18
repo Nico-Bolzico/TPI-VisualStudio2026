@@ -1,0 +1,721 @@
+@page "/planes"
+@inject APISession Session
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Planes de Estudio - TPI Academia</PageTitle>
+
+<div class="container-fluid py-3">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-0">Gestión de Planes de Estudio</h3>
+            <span class="text-muted small">
+                Administración de carreras, planes curriculares y asignaturas asociadas (Maestro / Detalle).
+            </span>
+        </div>
+        @if (Session.TienePermiso("Planes", "Alta"))
+        {
+            <button class="btn btn-primary" @onclick="AbrirModalAltaPlan">
+                + Nuevo Plan
+            </button>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensajeExito))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @mensajeExito
+            <button type="button" class="btn-close" @onclick="() => mensajeExito = null"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(mensajeError))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @mensajeError
+            <button type="button" class="btn-close" @onclick="() => mensajeError = null"></button>
+        </div>
+    }
+
+    <!-- Búsqueda -->
+    <div class="card mb-3 shadow-sm border-0">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-6 col-lg-4">
+                    <input type="text" class="form-control" placeholder="Buscar por descripción de plan..."
+                           @bind="textoBusqueda" @bind:event="oninput" @onkeydown="ManejarTeclaBusqueda" />
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-secondary" @onclick="BuscarAsync">Buscar</button>
+                    <button class="btn btn-link text-decoration-none" @onclick="MostrarTodosAsync">Mostrar todos</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAESTRO: Grilla de Planes -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-2">
+            <h6 class="mb-0 fw-bold">Planes de Estudio (Haga clic en una fila para ver sus materias)</h6>
+            <span class="badge bg-secondary">@(planes?.Count ?? 0) planes</span>
+        </div>
+        <div class="card-body p-0">
+            @if (cargando)
+            {
+                <p class="text-muted p-3 mb-0">Cargando planes de estudio...</p>
+            }
+            else if (planes == null || !planes.Any())
+            {
+                <div class="alert alert-warning m-3 mb-3">
+                    No se encontraron planes de estudio registrados.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle mb-0">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th style="width: 70px;">Id</th>
+                                <th>Descripción</th>
+                                <th>Especialidad</th>
+                                <th style="width: 150px;" class="text-center">Cant. Materias</th>
+                                <th style="width: 170px;" class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var plan in planes)
+                            {
+                                var seleccionado = plan.Id == planSeleccionado?.Id;
+                                <tr class="@(seleccionado ? "table-primary fw-semibold" : "")" 
+                                    style="cursor: pointer;"
+                                    @onclick="() => SeleccionarPlan(plan)">
+                                    <td>@plan.Id</td>
+                                    <td>@plan.Descripcion</td>
+                                    <td>@ObtenerNombreEspecialidad(plan.IdEspecialidad)</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info text-dark">@(plan.Materias?.Count ?? 0) materias</span>
+                                    </td>
+                                    <td class="text-center" @onclick:stopPropagation="true">
+                                        @if (Session.TienePermiso("Planes", "Modificar"))
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => AbrirModalModificarPlan(plan)">
+                                                Editar
+                                            </button>
+                                        }
+                                        @if (Session.TienePermiso("Planes", "Baja"))
+                                        {
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => EliminarPlanAsync(plan)">
+                                                Eliminar
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- DETALLE: Materias del Plan Seleccionado -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-2">
+            <h6 class="mb-0 fw-bold">
+                Materias del Plan Seleccionado: 
+                <span class="text-primary">@(planSeleccionado != null ? planSeleccionado.Descripcion : "(Ninguno)")</span>
+            </h6>
+            @if (planSeleccionado != null)
+            {
+                <span class="badge bg-primary">@(planSeleccionado.Materias?.Count ?? 0) materias</span>
+            }
+        </div>
+        <div class="card-body p-0">
+            @if (planSeleccionado == null)
+            {
+                <div class="p-4 text-center text-muted">
+                    Seleccione un plan de estudio en la grilla superior para inspeccionar sus materias.
+                </div>
+            }
+            else if (planSeleccionado.Materias == null || !planSeleccionado.Materias.Any())
+            {
+                <div class="alert alert-info m-3">
+                    El plan seleccionado no posee materias asignadas actualmente.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered table-striped align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 70px;">Id</th>
+                                <th>Descripción de la Materia</th>
+                                <th style="width: 150px;" class="text-center">Hs. Semanales</th>
+                                <th style="width: 150px;" class="text-center">Hs. Totales</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var mat in planSeleccionado.Materias)
+                            {
+                                <tr>
+                                    <td>@mat.Id</td>
+                                    <td><strong>@mat.Descripcion</strong></td>
+                                    <td class="text-center">@mat.HsSemanales hs</td>
+                                    <td class="text-center">@mat.HsTotales hs</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- MODAL MAESTRO/DETALLE: Alta y Modificación de Plan -->
+@if (mostrarModalPlan)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">@(esModificacionPlan ? "Modificar Plan de Estudio" : "Nuevo Plan de Estudio")</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CerrarModalPlan"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(mensajeErrorModalPlan))
+                    {
+                        <div class="alert alert-danger py-2 small">@mensajeErrorModalPlan</div>
+                    }
+
+                    <!-- Datos del Plan (Maestro) -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-7">
+                            <label class="form-label small fw-bold">Descripción del Plan *</label>
+                            <input type="text" class="form-control" @bind="planEnEdicion.Descripcion" placeholder="Ej: Plan 2023 - ISI" />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold">Especialidad *</label>
+                            <select class="form-select" @bind="planEnEdicion.IdEspecialidad">
+                                <option value="0">-- Seleccione Especialidad --</option>
+                                @foreach (var esp in especialidades)
+                                {
+                                    <option value="@esp.Id">@esp.Descripcion</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <!-- Materias del Plan (Detalle en memoria) -->
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0">Materias del Plan (en memoria)</h6>
+                        @if (!mostrarFormMateria)
+                        {
+                            <button type="button" class="btn btn-sm btn-outline-success" @onclick="AbrirFormNuevaMateria">
+                                + Agregar Materia
+                            </button>
+                        }
+                    </div>
+
+                    <!-- Sub-formulario para agregar o editar materia en memoria -->
+                    @if (mostrarFormMateria)
+                    {
+                        <div class="card mb-3 border-primary bg-light">
+                            <div class="card-body p-3">
+                                <h6 class="fw-bold text-primary mb-2">
+                                    @(esEdicionMateria ? "Editar Materia en el Plan" : "Nueva Materia para el Plan")
+                                </h6>
+
+                                @if (!string.IsNullOrEmpty(mensajeErrorMateriaMemoria))
+                                {
+                                    <div class="alert alert-danger py-1 small mb-2">@mensajeErrorMateriaMemoria</div>
+                                }
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold">Nombre / Descripción de la Materia *</label>
+                                    <input type="text" class="form-control form-control-sm" @bind="materiaEnMemoria.Descripcion" 
+                                           placeholder="Ej: Análisis Matemático II" />
+                                </div>
+
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <label class="form-label small fw-semibold">Hs. Semanales *</label>
+                                        <input type="number" class="form-control form-control-sm" min="1" @bind="materiaEnMemoria.HsSemanales" />
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small fw-semibold">Hs. Totales *</label>
+                                        <input type="number" class="form-control form-control-sm" min="1" @bind="materiaEnMemoria.HsTotales" />
+                                    </div>
+                                </div>
+
+                                <div class="text-end">
+                                    <button type="button" class="btn btn-sm btn-secondary me-1" @onclick="CancelarFormMateria">
+                                        Cancelar
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-primary" @onclick="AceptarMateriaMemoria">
+                                        @(esEdicionMateria ? "Actualizar Materia" : "Agregar a la Lista")
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Grilla de Materias en Memoria -->
+                    @if (!materiasEnMemoria.Any())
+                    {
+                        <div class="alert alert-warning py-2 small mb-0">
+                            Aún no se han agregado materias a este plan. Utilice el botón "+ Agregar Materia" para sumar asignaturas.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive border rounded">
+                            <table class="table table-sm table-striped align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Materia</th>
+                                        <th style="width: 120px;" class="text-center">Hs. Sem.</th>
+                                        <th style="width: 120px;" class="text-center">Hs. Tot.</th>
+                                        <th style="width: 140px;" class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < materiasEnMemoria.Count; i++)
+                                    {
+                                        var index = i;
+                                        var m = materiasEnMemoria[index];
+                                        <tr>
+                                            <td><strong>@m.Descripcion</strong></td>
+                                            <td class="text-center">@m.HsSemanales hs</td>
+                                            <td class="text-center">@m.HsTotales hs</td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 me-1" 
+                                                        @onclick="() => AbrirFormEditarMateria(index)">
+                                                    Editar
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" 
+                                                        @onclick="() => QuitarMateriaMemoria(index)">
+                                                    Quitar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarModalPlan">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarPlanAsync">Guardar Plan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<PlanDTO>? planes;
+    private List<EspecialidadDTO> especialidades = new();
+    private PlanDTO? planSeleccionado;
+    private string textoBusqueda = string.Empty;
+    private bool cargando = true;
+    private string? mensajeExito;
+    private string? mensajeError;
+
+    // Estado del modal del Plan
+    private bool mostrarModalPlan = false;
+    private bool esModificacionPlan = false;
+    private PlanDTO planEnEdicion = new();
+    private List<MateriaDTO> materiasEnMemoria = new();
+    private string? mensajeErrorModalPlan;
+
+    // Estado del sub-formulario de materia dentro del modal
+    private bool mostrarFormMateria = false;
+    private bool esEdicionMateria = false;
+    private int indiceMateriaEnEdicion = -1;
+    private MateriaDTO materiaEnMemoria = new();
+    private string? mensajeErrorMateriaMemoria;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.EstaAutenticado || !Session.TienePermiso("Planes", "Consultar"))
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        await CargarEspecialidadesAsync();
+        await CargarGrillaAsync();
+    }
+
+    private async Task CargarEspecialidadesAsync()
+    {
+        try
+        {
+            var resultado = await Session.HttpClient.GetFromJsonAsync<IEnumerable<EspecialidadDTO>>("especialidades");
+            especialidades = resultado?.ToList() ?? new List<EspecialidadDTO>();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al cargar especialidades: {ex.Message}";
+        }
+    }
+
+    private async Task CargarGrillaAsync()
+    {
+        try
+        {
+            cargando = true;
+            mensajeError = null;
+
+            var resultado = await Session.HttpClient.GetFromJsonAsync<IEnumerable<PlanDTO>>("planes");
+            planes = resultado?.ToList() ?? new List<PlanDTO>();
+
+            // Mantener seleccionado el plan actual si aún existe, o seleccionar el primero
+            if (planSeleccionado != null)
+            {
+                planSeleccionado = planes.FirstOrDefault(p => p.Id == planSeleccionado.Id) ?? planes.FirstOrDefault();
+            }
+            else
+            {
+                planSeleccionado = planes.FirstOrDefault();
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al cargar planes: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void SeleccionarPlan(PlanDTO plan)
+    {
+        planSeleccionado = plan;
+    }
+
+    private async Task BuscarAsync()
+    {
+        if (string.IsNullOrWhiteSpace(textoBusqueda))
+        {
+            await CargarGrillaAsync();
+            return;
+        }
+
+        try
+        {
+            cargando = true;
+            string textoCodificado = Uri.EscapeDataString(textoBusqueda.Trim());
+            var resultado = await Session.HttpClient.GetFromJsonAsync<IEnumerable<PlanDTO>>($"planes/criteria?texto={textoCodificado}");
+            planes = resultado?.ToList() ?? new List<PlanDTO>();
+            planSeleccionado = planes.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error en la búsqueda: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task ManejarTeclaBusqueda(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await BuscarAsync();
+        }
+    }
+
+    private async Task MostrarTodosAsync()
+    {
+        textoBusqueda = string.Empty;
+        await CargarGrillaAsync();
+    }
+
+    private string ObtenerNombreEspecialidad(int idEspecialidad)
+    {
+        var esp = especialidades.FirstOrDefault(e => e.Id == idEspecialidad);
+        return esp != null ? esp.Descripcion : $"Especialidad #{idEspecialidad}";
+    }
+
+    // Modal de Plan
+    private void AbrirModalAltaPlan()
+    {
+        esModificacionPlan = false;
+        mensajeErrorModalPlan = null;
+        mostrarFormMateria = false;
+
+        planEnEdicion = new PlanDTO
+        {
+            IdEspecialidad = especialidades.FirstOrDefault()?.Id ?? 0
+        };
+
+        materiasEnMemoria = new List<MateriaDTO>();
+        mostrarModalPlan = true;
+    }
+
+    private void AbrirModalModificarPlan(PlanDTO plan)
+    {
+        esModificacionPlan = true;
+        mensajeErrorModalPlan = null;
+        mostrarFormMateria = false;
+
+        planEnEdicion = new PlanDTO
+        {
+            Id = plan.Id,
+            Descripcion = plan.Descripcion,
+            IdEspecialidad = plan.IdEspecialidad
+        };
+
+        // Copiamos las materias para trabajar en memoria y no mutar el original en caso de cancelar
+        materiasEnMemoria = plan.Materias?.Select(m => new MateriaDTO
+        {
+            Id = m.Id,
+            Descripcion = m.Descripcion,
+            HsSemanales = m.HsSemanales,
+            HsTotales = m.HsTotales,
+            IdPlan = m.IdPlan
+        }).ToList() ?? new List<MateriaDTO>();
+
+        mostrarModalPlan = true;
+    }
+
+    private void CerrarModalPlan()
+    {
+        mostrarModalPlan = false;
+        mostrarFormMateria = false;
+        mensajeErrorModalPlan = null;
+    }
+
+    // Sub-formulario de Materias en Memoria
+    private void AbrirFormNuevaMateria()
+    {
+        esEdicionMateria = false;
+        indiceMateriaEnEdicion = -1;
+        mensajeErrorMateriaMemoria = null;
+
+        materiaEnMemoria = new MateriaDTO
+        {
+            HsSemanales = 4,
+            HsTotales = 64
+        };
+
+        mostrarFormMateria = true;
+    }
+
+    private void AbrirFormEditarMateria(int index)
+    {
+        if (index < 0 || index >= materiasEnMemoria.Count) return;
+
+        esEdicionMateria = true;
+        indiceMateriaEnEdicion = index;
+        mensajeErrorMateriaMemoria = null;
+
+        var actual = materiasEnMemoria[index];
+        materiaEnMemoria = new MateriaDTO
+        {
+            Id = actual.Id,
+            Descripcion = actual.Descripcion,
+            HsSemanales = actual.HsSemanales,
+            HsTotales = actual.HsTotales,
+            IdPlan = actual.IdPlan
+        };
+
+        mostrarFormMateria = true;
+    }
+
+    private void CancelarFormMateria()
+    {
+        mostrarFormMateria = false;
+        mensajeErrorMateriaMemoria = null;
+    }
+
+    private void AceptarMateriaMemoria()
+    {
+        mensajeErrorMateriaMemoria = null;
+
+        if (string.IsNullOrWhiteSpace(materiaEnMemoria.Descripcion))
+        {
+            mensajeErrorMateriaMemoria = "La descripción de la materia es obligatoria.";
+            return;
+        }
+
+        if (materiaEnMemoria.HsSemanales <= 0 || materiaEnMemoria.HsTotales <= 0)
+        {
+            mensajeErrorMateriaMemoria = "Las horas semanales y totales deben ser mayores que 0.";
+            return;
+        }
+
+        if (materiaEnMemoria.HsTotales < materiaEnMemoria.HsSemanales)
+        {
+            mensajeErrorMateriaMemoria = "Las horas totales no pueden ser menores que las semanales.";
+            return;
+        }
+
+        string descLimpia = materiaEnMemoria.Descripcion.Trim();
+
+        // Validar duplicados en la lista local (ignorando la misma materia si estamos editándola)
+        bool esDuplicada = materiasEnMemoria
+            .Where((m, idx) => !esEdicionMateria || idx != indiceMateriaEnEdicion)
+            .Any(m => m.Descripcion.Trim().Equals(descLimpia, StringComparison.OrdinalIgnoreCase));
+
+        if (esDuplicada)
+        {
+            mensajeErrorMateriaMemoria = $"Ya existe una materia con el nombre \"{descLimpia}\" en este plan.";
+            return;
+        }
+
+        if (esEdicionMateria && indiceMateriaEnEdicion >= 0 && indiceMateriaEnEdicion < materiasEnMemoria.Count)
+        {
+            materiasEnMemoria[indiceMateriaEnEdicion] = new MateriaDTO
+            {
+                Id = materiaEnMemoria.Id,
+                Descripcion = descLimpia,
+                HsSemanales = materiaEnMemoria.HsSemanales,
+                HsTotales = materiaEnMemoria.HsTotales,
+                IdPlan = materiaEnMemoria.IdPlan
+            };
+        }
+        else
+        {
+            materiasEnMemoria.Add(new MateriaDTO
+            {
+                Id = 0,
+                Descripcion = descLimpia,
+                HsSemanales = materiaEnMemoria.HsSemanales,
+                HsTotales = materiaEnMemoria.HsTotales,
+                IdPlan = planEnEdicion.Id
+            });
+        }
+
+        mostrarFormMateria = false;
+    }
+
+    private async Task QuitarMateriaMemoria(int index)
+    {
+        if (index < 0 || index >= materiasEnMemoria.Count) return;
+
+        var m = materiasEnMemoria[index];
+        bool confirma = await JS.InvokeAsync<bool>("confirm", 
+            $"¿Desea quitar la materia \"{m.Descripcion}\" de este plan?");
+
+        if (confirma)
+        {
+            materiasEnMemoria.RemoveAt(index);
+            if (mostrarFormMateria && indiceMateriaEnEdicion == index)
+            {
+                mostrarFormMateria = false;
+            }
+        }
+    }
+
+    private async Task GuardarPlanAsync()
+    {
+        mensajeErrorModalPlan = null;
+
+        if (string.IsNullOrWhiteSpace(planEnEdicion.Descripcion))
+        {
+            mensajeErrorModalPlan = "La descripción del plan es obligatoria.";
+            return;
+        }
+
+        if (planEnEdicion.IdEspecialidad <= 0)
+        {
+            mensajeErrorModalPlan = "Debe seleccionar una especialidad.";
+            return;
+        }
+
+        // Validar duplicados en materias (igual a WinForms)
+        var duplicada = materiasEnMemoria
+            .GroupBy(m => m.Descripcion.Trim(), StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault(g => g.Count() > 1);
+
+        if (duplicada is not null)
+        {
+            mensajeErrorModalPlan = $"La materia \"{duplicada.Key}\" está repetida en el plan.";
+            return;
+        }
+
+        planEnEdicion.Descripcion = planEnEdicion.Descripcion.Trim();
+        planEnEdicion.Materias = materiasEnMemoria;
+
+        try
+        {
+            HttpResponseMessage response;
+
+            if (esModificacionPlan)
+            {
+                response = await Session.HttpClient.PutAsJsonAsync("planes", planEnEdicion);
+            }
+            else
+            {
+                response = await Session.HttpClient.PostAsJsonAsync("planes", planEnEdicion);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensajeErrorModalPlan = $"No se pudo guardar el plan: {error}";
+                return;
+            }
+
+            mostrarModalPlan = false;
+            mensajeExito = esModificacionPlan ? "Plan de estudio modificado con éxito." : "Plan de estudio agregado con éxito.";
+            
+            int idAGuardar = planEnEdicion.Id;
+            await CargarGrillaAsync();
+
+            if (idAGuardar > 0)
+            {
+                planSeleccionado = planes?.FirstOrDefault(p => p.Id == idAGuardar) ?? planSeleccionado;
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeErrorModalPlan = $"Error al guardar: {ex.Message}";
+        }
+    }
+
+    private async Task EliminarPlanAsync(PlanDTO plan)
+    {
+        int cantMaterias = plan.Materias?.Count ?? 0;
+        bool confirma = await JS.InvokeAsync<bool>("confirm", 
+            $"¿Confirma eliminar el plan \"{plan.Descripcion}\"?\nSe eliminarán también sus {cantMaterias} materia(s) asociadas.");
+
+        if (!confirma) return;
+
+        try
+        {
+            var response = await Session.HttpClient.DeleteAsync($"planes/{plan.Id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensajeError = $"No se pudo eliminar el plan: {error}";
+                return;
+            }
+
+            mensajeExito = "Plan de estudio eliminado con éxito.";
+            if (planSeleccionado?.Id == plan.Id)
+            {
+                planSeleccionado = null;
+            }
+
+            await CargarGrillaAsync();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al eliminar: {ex.Message}";
+        }
+    }
+}
