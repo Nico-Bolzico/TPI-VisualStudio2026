@@ -1,0 +1,234 @@
+@page "/reporte-planes"
+@inject APISession Session
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Reporte de Planes - TPI Academia</PageTitle>
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-0">Reporte de Planes de Estudio</h3>
+            <span class="text-muted small">
+                Detalle de asignaturas y carga horaria por plan con exportación directa a PDF.
+            </span>
+        </div>
+        @if (planSeleccionado != null)
+        {
+            <button class="btn btn-danger" @onclick="ExportarPdfAsync" disabled="@descargando">
+                @if (descargando)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    <span>Generando PDF...</span>
+                }
+                else
+                {
+                    <span>Exportar a PDF</span>
+                }
+            </button>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensajeError))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @mensajeError
+            <button type="button" class="btn-close" @onclick="() => mensajeError = null"></button>
+        </div>
+    }
+
+    @if (cargando)
+    {
+        <p class="text-muted py-3">Cargando datos del reporte...</p>
+    }
+    else if (!planes.Any())
+    {
+        <div class="alert alert-warning">
+            No se encontraron planes de estudio cargados en el sistema.
+        </div>
+    }
+    else
+    {
+        <!-- Selector de Plan -->
+        <div class="card mb-3 shadow-sm border-0">
+            <div class="card-body py-3">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-5">
+                        <label class="form-label small fw-bold mb-1">Plan de Estudio</label>
+                        <select class="form-select" value="@idPlanSeleccionado" @onchange="CambiarPlan">
+                            @foreach (var p in planes)
+                            {
+                                <option value="@p.Id">@p.Descripcion</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label small fw-bold mb-1">Especialidad</label>
+                        <input type="text" class="form-control bg-light" value="@ObtenerNombreEspecialidad()" disabled />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (planSeleccionado != null)
+        {
+            var materiasOrdenadas = (planSeleccionado.Materias ?? new List<MateriaDTO>())
+                .OrderBy(m => m.Descripcion)
+                .ToList();
+            int totalMaterias = materiasOrdenadas.Count;
+            int totalHsSemanales = materiasOrdenadas.Sum(m => m.HsSemanales);
+            int totalHsTotales = materiasOrdenadas.Sum(m => m.HsTotales);
+
+            <!-- Resumen de totales -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm bg-light">
+                        <div class="card-body py-2 text-center">
+                            <div class="text-muted small">Total Materias</div>
+                            <div class="fs-4 fw-bold text-primary">@totalMaterias</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm bg-light">
+                        <div class="card-body py-2 text-center">
+                            <div class="text-muted small">Horas Semanales</div>
+                            <div class="fs-4 fw-bold text-primary">@totalHsSemanales hs</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm bg-light">
+                        <div class="card-body py-2 text-center">
+                            <div class="text-muted small">Carga Horaria Total</div>
+                            <div class="fs-4 fw-bold text-success">@totalHsTotales hs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Materias del Plan -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white py-2">
+                    <h6 class="mb-0 fw-bold">Materias de @planSeleccionado.Descripcion</h6>
+                </div>
+                <div class="card-body p-0">
+                    @if (!materiasOrdenadas.Any())
+                    {
+                        <div class="alert alert-info m-3">
+                            El plan seleccionado no tiene materias registradas.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover table-bordered align-middle mb-0">
+                                <thead class="table-secondary">
+                                    <tr>
+                                        <th>Materia</th>
+                                        <th style="width: 180px;" class="text-end">Horas Semanales</th>
+                                        <th style="width: 180px;" class="text-end">Horas Totales</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var m in materiasOrdenadas)
+                                    {
+                                        <tr>
+                                            <td><strong>@m.Descripcion</strong></td>
+                                            <td class="text-end">@m.HsSemanales hs</td>
+                                            <td class="text-end">@m.HsTotales hs</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<PlanDTO> planes = new();
+    private List<EspecialidadDTO> especialidades = new();
+    private int idPlanSeleccionado;
+    private PlanDTO? planSeleccionado => planes.FirstOrDefault(p => p.Id == idPlanSeleccionado);
+    private bool cargando = true;
+    private bool descargando = false;
+    private string? mensajeError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.EstaAutenticado || !Session.TienePermiso("Planes", "Consultar"))
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        await CargarDatosAsync();
+    }
+
+    private async Task CargarDatosAsync()
+    {
+        try
+        {
+            cargando = true;
+            var tPlanes = Session.HttpClient.GetFromJsonAsync<List<PlanDTO>>("planes");
+            var tEspecialidades = Session.HttpClient.GetFromJsonAsync<List<EspecialidadDTO>>("especialidades");
+
+            await Task.WhenAll(tPlanes, tEspecialidades);
+
+            planes = await tPlanes ?? new();
+            especialidades = await tEspecialidades ?? new();
+            idPlanSeleccionado = planes.FirstOrDefault()?.Id ?? 0;
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al cargar los datos del reporte: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void CambiarPlan(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int id))
+        {
+            idPlanSeleccionado = id;
+        }
+    }
+
+    private string ObtenerNombreEspecialidad()
+    {
+        if (planSeleccionado == null) return "-";
+        return especialidades.FirstOrDefault(e => e.Id == planSeleccionado.IdEspecialidad)?.Descripcion
+               ?? "Especialidad General";
+    }
+
+    private async Task ExportarPdfAsync()
+    {
+        if (planSeleccionado == null) return;
+
+        try
+        {
+            descargando = true;
+            mensajeError = null;
+
+            var pdfBytes = await Session.HttpClient.GetByteArrayAsync($"planes/{planSeleccionado.Id}/pdf");
+            string nombreArchivo = $"{planSeleccionado.Descripcion.Replace(" ", "_")}_PlanDeEstudios.pdf";
+
+            await JS.InvokeVoidAsync("descargarPdf", nombreArchivo, Convert.ToBase64String(pdfBytes));
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al exportar el PDF: {ex.Message}";
+        }
+        finally
+        {
+            descargando = false;
+        }
+    }
+}

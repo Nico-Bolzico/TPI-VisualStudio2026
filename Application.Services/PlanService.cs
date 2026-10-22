@@ -7,10 +7,12 @@ namespace Application.Services
     public class PlanService : IPlanService
     {
         private readonly IPlanRepository planRepository;
+        private readonly IEspecialidadRepository especialidadRepository;
 
-        public PlanService(IPlanRepository planRepository)
+        public PlanService(IPlanRepository planRepository, IEspecialidadRepository especialidadRepository)
         {
             this.planRepository = planRepository;
+            this.especialidadRepository = especialidadRepository;
         }
 
         public async Task<PlanDTO> AddAsync(PlanDTO dto)
@@ -63,6 +65,18 @@ namespace Application.Services
             var plan = new Plan(dto.Id, dto.Descripcion, dto.IdEspecialidad, materias);
 
             return await planRepository.UpdateAsync(plan);
+        }
+
+        public async Task<byte[]?> GenerarPdfAsync(int id)
+        {
+            var plan = await planRepository.GetAsync(id);
+            if (plan == null)
+                return null;
+
+            var especialidad = await especialidadRepository.GetAsync(plan.IdEspecialidad);
+            string nombreEspecialidad = especialidad?.Descripcion ?? "Especialidad General";
+
+            return PlanReportePdf.Generar(plan, nombreEspecialidad);
         }
 
         private static PlanDTO ToDto(Plan plan)

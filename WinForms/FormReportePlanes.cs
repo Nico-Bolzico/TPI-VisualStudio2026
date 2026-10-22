@@ -8,9 +8,6 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DTOs;
-using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
 
 namespace WinForms;
 
@@ -31,9 +28,6 @@ public partial class FormReportePlanes : Form
     public FormReportePlanes()
     {
         InitializeComponent();
-
-        // Configuración de licencia gratuita para uso educativo / comunidad
-        QuestPDF.Settings.License = LicenseType.Community;
     }
 
     private async void FormReportePlanes_Load(object sender, EventArgs e)
@@ -120,7 +114,7 @@ public partial class FormReportePlanes : Form
         lblTotalHsTotales.Text = $"Carga Horaria Total: {totalHsTotales} hs";
     }
 
-    private void btnExportarPdf_Click(object sender, EventArgs e)
+    private async void btnExportarPdf_Click(object sender, EventArgs e)
     {
         if (cmbPlanes.SelectedItem is not PlanDTO plan)
         {
@@ -128,9 +122,6 @@ public partial class FormReportePlanes : Form
                 "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
-
-        string nombreEspecialidad = _especialidades.FirstOrDefault(esp => esp.Id == plan.IdEspecialidad)?.Descripcion
-                                   ?? "Especialidad General";
 
         using var saveDialog = new SaveFileDialog
         {
@@ -144,7 +135,8 @@ public partial class FormReportePlanes : Form
 
         try
         {
-            GenerarPdf(saveDialog.FileName, plan, nombreEspecialidad, _materiasActuales);
+            var pdfBytes = await ApiSession.HttpClient.GetByteArrayAsync($"planes/{plan.Id}/pdf");
+            await File.WriteAllBytesAsync(saveDialog.FileName, pdfBytes);
 
             var respuesta = MessageBox.Show(
                 "¡Reporte PDF generado exitosamente!\n\n¿Desea abrir el archivo ahora?",
@@ -160,82 +152,5 @@ public partial class FormReportePlanes : Form
             MessageBox.Show($"Ocurrió un error al generar el PDF: {ex.Message}",
                 "Error al generar PDF", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-    }
-
-    private static void GenerarPdf(string rutaArchivo, PlanDTO plan, string nombreEspecialidad, List<FilaMateria> materias)
-    {
-        int totalHsSemanales = materias.Sum(m => m.HsSemanales);
-        int totalHsTotales = materias.Sum(m => m.HsTotales);
-
-        Document.Create(container =>
-        {
-            container.Page(page =>
-            {
-                page.Size(PageSizes.A4);
-                page.Margin(30);
-                page.PageColor(Colors.White);
-                page.DefaultTextStyle(x => x.FontSize(10).FontFamily("Segoe UI"));
-
-                // Encabezado institucional
-                page.Header().Column(col =>
-                {
-                    col.Item().Text("UNIVERSIDAD TECNOLÓGICA NACIONAL").Bold().FontSize(15).FontColor(Colors.Blue.Darken2);
-                    col.Item().Text("Facultad Regional Rosario — Sistema de Gestión Académica (SGA)").FontSize(10).FontColor(Colors.Grey.Darken1);
-                    col.Item().PaddingTop(6).LineHorizontal(1).LineColor(Colors.Grey.Lighten1);
-                });
-
-                // Cuerpo del reporte
-                page.Content().PaddingVertical(15).Column(col =>
-                {
-                    col.Item().Text($"Ficha Oficial: {plan.Descripcion}").Bold().FontSize(14);
-                    col.Item().Text($"Especialidad: {nombreEspecialidad}").FontSize(10).FontColor(Colors.Grey.Darken2);
-                    col.Item().Text($"Fecha de Emisión: {DateTime.Now:dd/MM/yyyy HH:mm} hs").FontSize(9).FontColor(Colors.Grey.Darken1);
-                    col.Item().PaddingTop(12);
-
-                    // Tabla de materias
-                    col.Item().Table(table =>
-                    {
-                        table.ColumnsDefinition(columns =>
-                        {
-                            columns.RelativeColumn(3); // Materia
-                            columns.RelativeColumn(1); // Hs Semanales
-                            columns.RelativeColumn(1); // Hs Totales
-                        });
-
-                        table.Header(header =>
-                        {
-                            header.Cell().Background(Colors.Blue.Lighten4).Padding(6).Text("Materia").Bold();
-                            header.Cell().Background(Colors.Blue.Lighten4).Padding(6).AlignRight().Text("Hs. Semanales").Bold();
-                            header.Cell().Background(Colors.Blue.Lighten4).Padding(6).AlignRight().Text("Hs. Totales").Bold();
-                        });
-
-                        foreach (var m in materias)
-                        {
-                            table.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(6).Text(m.Materia);
-                            table.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(6).AlignRight().Text($"{m.HsSemanales} hs");
-                            table.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(6).AlignRight().Text($"{m.HsTotales} hs");
-                        }
-                    });
-
-                    // Cuadro resumen de totales al pie
-                    col.Item().PaddingTop(15).Background(Colors.Grey.Lighten4).Padding(10).Row(row =>
-                    {
-                        row.RelativeItem().Text($"Total Materias: {materias.Count}").Bold();
-                        row.RelativeItem().Text($"Horas Semanales: {totalHsSemanales} hs").Bold();
-                        row.RelativeItem().Text($"Carga Horaria Carrera: {totalHsTotales} hs").Bold();
-                    });
-                });
-
-                // Pie de página con numeración
-                page.Footer().AlignCenter().Text(text =>
-                {
-                    text.Span("Página ");
-                    text.CurrentPageNumber();
-                    text.Span(" de ");
-                    text.TotalPages();
-                });
-            });
-        })
-        .GeneratePdf(rutaArchivo);
     }
 }

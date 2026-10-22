@@ -10,5 +10,6 @@ namespace Application.Services
         Task<IEnumerable<PlanDTO>> GetAllAsync();
         Task<IEnumerable<PlanDTO>> GetByCriteriaAsync(PlanCriteriaDTO criteriaDTO);
         Task<bool> UpdateAsync(PlanDTO dto);
+        Task<byte[]?> GenerarPdfAsync(int id);
     }
 }

@@ -43,6 +43,23 @@ namespace WebAPI
             .RequireAuthorization("Planes.Consultar")
             .WithOpenApi();
 
+            app.MapGet("/planes/{id:int}/pdf", async (int id, IPlanService planService) =>
+            {
+                var pdfBytes = await planService.GenerarPdfAsync(id);
+
+                if (pdfBytes == null)
+                {
+                    return Results.NotFound();
+                }
+
+                return Results.File(pdfBytes, "application/pdf", $"Plan_{id}.pdf");
+            })
+            .WithName("GetPlanPdf")
+            .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
+            .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization("Planes.Consultar")
+            .WithOpenApi();
+
             app.MapGet("/planes", async (IPlanService planService) =>
             {
                 var dtos = await planService.GetAllAsync();

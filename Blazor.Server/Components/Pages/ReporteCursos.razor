@@ -1,0 +1,242 @@
+@page "/reporte-cursos"
+@inject APISession Session
+@inject NavigationManager Navigation
+
+<PageTitle>Reporte de Cursos - TPI Academia</PageTitle>
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-0">Reporte de Cursos (Inscriptos vs. Cupo)</h3>
+            <span class="text-muted small">
+                Comparativa gráfica y tabular de ocupación de comisiones por curso.
+            </span>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensajeError))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @mensajeError
+            <button type="button" class="btn-close" @onclick="() => mensajeError = null"></button>
+        </div>
+    }
+
+    @if (cargando)
+    {
+        <p class="text-muted py-3">Generando reporte y gráfico...</p>
+    }
+    else if (!filas.Any())
+    {
+        <div class="alert alert-warning">
+            No se encontraron cursos registrados para generar el reporte.
+        </div>
+    }
+    else
+    {
+        int maxValor = Math.Max(1, filas.Max(f => Math.Max(f.Cupo, f.Inscriptos)));
+
+        <!-- GRÁFICO DE COLUMNAS: Cupo vs. Inscriptos -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom text-center py-3">
+                <h5 class="fw-bold mb-0">Cupo vs. inscriptos por curso (@filas.Count cursos)</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex align-items-end justify-content-around border-bottom border-start px-3 pt-4"
+                     style="height: 280px; gap: 16px; overflow-x: auto;">
+                    @foreach (var f in filas)
+                    {
+                        int alturaCupoPx = (int)Math.Round(200.0 * f.Cupo / maxValor);
+                        int alturaInscriptosPx = (int)Math.Round(200.0 * f.Inscriptos / maxValor);
+                        bool agotado = f.Cupo > 0 && f.Inscriptos >= f.Cupo;
+                        string colorInscriptos = agotado ? "#B22222" : "#4682B4";
+
+                        <div class="d-flex flex-column align-items-center" style="min-width: 120px;"
+                             title="@($"{f.Materia} ({f.Comision} · {f.Anio}) — Cupo: {f.Cupo} | Inscriptos: {f.Inscriptos} | Ocupación: {f.Ocupacion}")">
+                            <div class="d-flex align-items-end gap-2">
+                                <!-- Barra Cupo -->
+                                <div class="d-flex flex-column align-items-center">
+                                    <span class="small fw-semibold text-secondary mb-1">@f.Cupo</span>
+                                    <div style="width: 34px; height: @(Math.Max(4, alturaCupoPx))px; background-color: rgb(190, 200, 215); border-radius: 4px 4px 0 0;"></div>
+                                </div>
+                                <!-- Barra Inscriptos -->
+                                <div class="d-flex flex-column align-items-center">
+                                    <span class="small fw-bold mb-1" style="color: @colorInscriptos;">@f.Inscriptos</span>
+                                    <div style="width: 34px; height: @(Math.Max(4, alturaInscriptosPx))px; background-color: @colorInscriptos; border-radius: 4px 4px 0 0;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Etiquetas del Eje X -->
+                <div class="d-flex justify-content-around px-3 pt-2 text-center" style="gap: 16px; overflow-x: auto;">
+                    @foreach (var f in filas)
+                    {
+                        <div style="min-width: 120px; max-width: 150px;">
+                            <div class="small fw-semibold text-truncate" title="@f.Materia">@f.Materia</div>
+                            <div class="text-muted" style="font-size: 0.78rem;">@f.Comision · @f.Anio</div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Leyenda -->
+                <div class="d-flex justify-content-center gap-4 mt-4 small">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="display:inline-block; width:16px; height:16px; background-color: rgb(190, 200, 215); border-radius: 3px;"></span>
+                        <span>Cupo</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="display:inline-block; width:16px; height:16px; background-color: #4682B4; border-radius: 3px;"></span>
+                        <span>Inscriptos (con vacantes)</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="display:inline-block; width:16px; height:16px; background-color: #B22222; border-radius: 3px;"></span>
+                        <span>Inscriptos (cupo agotado)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLA DE DATOS DEL REPORTE -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white py-2">
+                <h6 class="mb-0 fw-bold">Detalle de Ocupación por Curso</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-bordered align-middle mb-0">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th>Materia</th>
+                                <th class="text-center">Comisión</th>
+                                <th class="text-center">Año</th>
+                                <th class="text-center">Cupo</th>
+                                <th class="text-center">Inscriptos</th>
+                                <th class="text-center">Disponibles</th>
+                                <th class="text-center">Ocupación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var f in filas)
+                            {
+                                bool agotado = f.Cupo > 0 && f.Inscriptos >= f.Cupo;
+                                <tr>
+                                    <td><strong>@f.Materia</strong></td>
+                                    <td class="text-center">@f.Comision</td>
+                                    <td class="text-center">@f.Anio</td>
+                                    <td class="text-center">@f.Cupo</td>
+                                    <td class="text-center">@f.Inscriptos</td>
+                                    <td class="text-center">@f.Disponibles</td>
+                                    <td class="text-center">
+                                        <span class="badge @(agotado ? "bg-danger" : "bg-primary")">@f.Ocupacion</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private sealed class FilaReporte
+    {
+        public string Materia { get; init; } = string.Empty;
+        public string Comision { get; init; } = string.Empty;
+        public int Anio { get; init; }
+        public int Cupo { get; init; }
+        public int Inscriptos { get; init; }
+        public int Disponibles { get; init; }
+        public string Ocupacion { get; init; } = string.Empty;
+    }
+
+    private List<FilaReporte> filas = new();
+    private bool cargando = true;
+    private string? mensajeError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.EstaAutenticado || !Session.TienePermiso("Cursos", "Consultar"))
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        await CargarReporteAsync();
+    }
+
+    private async Task<List<T>?> ObtenerListaAsync<T>(string url)
+    {
+        try
+        {
+            return await Session.HttpClient.GetFromJsonAsync<List<T>>(url);
+        }
+        catch (HttpRequestException)
+        {
+            return null;
+        }
+    }
+
+    private async Task CargarReporteAsync()
+    {
+        try
+        {
+            cargando = true;
+            var tCursos = ObtenerListaAsync<CursoDTO>("cursos");
+            var tInscripciones = ObtenerListaAsync<AlumnoInscripcionDTO>("inscripciones");
+            var tMaterias = ObtenerListaAsync<MateriaDTO>("materias");
+            var tComisiones = ObtenerListaAsync<ComisionDTO>("comisiones");
+
+            await Task.WhenAll(tCursos, tInscripciones, tMaterias, tComisiones);
+
+            var cursos = await tCursos;
+            var inscripciones = await tInscripciones;
+
+            if (cursos is null || inscripciones is null)
+            {
+                mensajeError = "Para ver este reporte necesita permiso de consulta sobre Cursos e Inscripciones.";
+                return;
+            }
+
+            var materias = (await tMaterias) ?? new List<MateriaDTO>();
+            var comisiones = (await tComisiones) ?? new List<ComisionDTO>();
+
+            var inscriptosPorCurso = inscripciones
+                .GroupBy(i => i.IdCurso)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            filas = cursos.Select(c =>
+                {
+                    int inscriptos = inscriptosPorCurso.TryGetValue(c.Id, out var n) ? n : 0;
+
+                    return new FilaReporte
+                    {
+                        Materia = materias.FirstOrDefault(m => m.Id == c.IdMateria)?.Descripcion
+                                  ?? $"Materia N° {c.IdMateria}",
+                        Comision = comisiones.FirstOrDefault(x => x.Id == c.IdComision)?.Descripcion
+                                   ?? $"Comisión N° {c.IdComision}",
+                        Anio = c.AnioCalendario,
+                        Cupo = c.Cupo,
+                        Inscriptos = inscriptos,
+                        Disponibles = c.Cupo - inscriptos,
+                        Ocupacion = c.Cupo > 0
+                            ? $"{(int)Math.Round(100.0 * inscriptos / c.Cupo)} %"
+                            : "-"
+                    };
+                })
+                .OrderBy(f => f.Materia).ThenBy(f => f.Comision)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al generar el reporte: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+}
