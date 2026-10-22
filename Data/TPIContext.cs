@@ -28,9 +28,79 @@ namespace Data
             modelBuilder.Entity<Plan>(entity =>
             {
                 entity.HasKey(p => p.Id);
+                entity.HasOne<Especialidad>()
+                      .WithMany()
+                      .HasForeignKey(p => p.IdEspecialidad)
+                      .OnDelete(DeleteBehavior.Restrict);
                 entity.HasMany(p => p.Materias)
                       .WithOne()
                       .HasForeignKey(m => m.IdPlan);
+            });
+
+            modelBuilder.Entity<Comision>()
+                .HasOne<Plan>()
+                .WithMany()
+                .HasForeignKey(c => c.IdPlan)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Curso>(entity =>
+            {
+                entity.HasOne<Materia>()
+                      .WithMany()
+                      .HasForeignKey(c => c.IdMateria)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne<Comision>()
+                      .WithMany()
+                      .HasForeignKey(c => c.IdComision)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Persona>()
+                .HasOne<Plan>()
+                .WithMany()
+                .HasForeignKey(p => p.IdPlan)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AlumnoInscripcion>(entity =>
+            {
+                entity.HasOne<Persona>()
+                      .WithMany()
+                      .HasForeignKey(ai => ai.IdAlumno)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne<Curso>()
+                      .WithMany()
+                      .HasForeignKey(ai => ai.IdCurso)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<DocenteCurso>(entity =>
+            {
+                entity.HasOne<Curso>()
+                      .WithMany()
+                      .HasForeignKey(dc => dc.IdCurso)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne<Persona>()
+                      .WithMany()
+                      .HasForeignKey(dc => dc.IdDocente)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Usuario>()
+                .HasOne<Persona>()
+                .WithMany()
+                .HasForeignKey(u => u.IdPersona)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ModuloUsuario>(entity =>
+            {
+                entity.HasOne<Modulo>()
+                      .WithMany()
+                      .HasForeignKey(mu => mu.IdModulo)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne<Usuario>()
+                      .WithMany()
+                      .HasForeignKey(mu => mu.IdUsuario)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

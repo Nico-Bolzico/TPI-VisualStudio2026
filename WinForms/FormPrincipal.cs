@@ -22,6 +22,8 @@ public partial class FormPrincipal : Form
     private void FormPrincipal_Load(object sender, EventArgs e)
     {
         this.Text = $"TPI Academia - Conectado como: {ApiSession.UsuarioActual?.NombreUsuario}";
+        personasToolStripMenuItem.Visible = ApiSession.TienePermiso("Personas", "Consultar");
+        materiasToolStripMenuItem.Visible = ApiSession.TienePermiso("Materias", "Consultar");
         planesToolStripMenuItem.Visible = ApiSession.TienePermiso("Planes", "Consultar");
         comisionesToolStripMenuItem.Visible = ApiSession.TienePermiso("Comisiones", "Consultar");
         cursosToolStripMenuItem.Visible = ApiSession.TienePermiso("Cursos", "Consultar");

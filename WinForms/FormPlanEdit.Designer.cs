@@ -20,7 +20,7 @@ namespace WinForms
             lblDescripcion = new Label();
             txtDescripcion = new TextBox();
             lblIdEspecialidad = new Label();
-            nudIdEspecialidad = new NumericUpDown();
+            cmbEspecialidades = new ComboBox();
             grpMaterias = new GroupBox();
             btnQuitarMateria = new Button();
             btnEditarMateria = new Button();
@@ -28,7 +28,6 @@ namespace WinForms
             dgvMaterias = new DataGridView();
             btnAceptar = new Button();
             btnCancelar = new Button();
-            ((System.ComponentModel.ISupportInitialize)nudIdEspecialidad).BeginInit();
             grpMaterias.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvMaterias).BeginInit();
             SuspendLayout();
@@ -48,28 +47,28 @@ namespace WinForms
             txtDescripcion.Location = new Point(12, 38);
             txtDescripcion.MaxLength = 100;
             txtDescripcion.Name = "txtDescripcion";
-            txtDescripcion.Size = new Size(560, 27);
+            txtDescripcion.Size = new Size(450, 27);
             txtDescripcion.TabIndex = 1;
             // 
             // lblIdEspecialidad
             // 
             lblIdEspecialidad.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblIdEspecialidad.AutoSize = true;
-            lblIdEspecialidad.Location = new Point(590, 15);
+            lblIdEspecialidad.Location = new Point(480, 15);
             lblIdEspecialidad.Name = "lblIdEspecialidad";
-            lblIdEspecialidad.Size = new Size(110, 20);
+            lblIdEspecialidad.Size = new Size(92, 20);
             lblIdEspecialidad.TabIndex = 2;
-            lblIdEspecialidad.Text = "Id Especialidad";
+            lblIdEspecialidad.Text = "Especialidad";
             // 
-            // nudIdEspecialidad
+            // cmbEspecialidades
             // 
-            nudIdEspecialidad.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            nudIdEspecialidad.Location = new Point(590, 38);
-            nudIdEspecialidad.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
-            nudIdEspecialidad.Name = "nudIdEspecialidad";
-            nudIdEspecialidad.Size = new Size(150, 27);
-            nudIdEspecialidad.TabIndex = 3;
-            nudIdEspecialidad.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            cmbEspecialidades.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            cmbEspecialidades.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbEspecialidades.FormattingEnabled = true;
+            cmbEspecialidades.Location = new Point(480, 38);
+            cmbEspecialidades.Name = "cmbEspecialidades";
+            cmbEspecialidades.Size = new Size(260, 28);
+            cmbEspecialidades.TabIndex = 3;
             // 
             // grpMaterias
             // 
@@ -165,7 +164,7 @@ namespace WinForms
             Controls.Add(btnCancelar);
             Controls.Add(btnAceptar);
             Controls.Add(grpMaterias);
-            Controls.Add(nudIdEspecialidad);
+            Controls.Add(cmbEspecialidades);
             Controls.Add(lblIdEspecialidad);
             Controls.Add(txtDescripcion);
             Controls.Add(lblDescripcion);
@@ -173,8 +172,8 @@ namespace WinForms
             Name = "FormPlanEdit";
             StartPosition = FormStartPosition.CenterParent;
             Text = "FormPlanEdit";
+            Load += FormPlanEdit_Load;
             FormClosing += FormPlanEdit_FormClosing;
-            ((System.ComponentModel.ISupportInitialize)nudIdEspecialidad).EndInit();
             grpMaterias.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dgvMaterias).EndInit();
             ResumeLayout(false);
@@ -186,7 +185,7 @@ namespace WinForms
         private Label lblDescripcion;
         private TextBox txtDescripcion;
         private Label lblIdEspecialidad;
-        private NumericUpDown nudIdEspecialidad;
+        private ComboBox cmbEspecialidades;
         private GroupBox grpMaterias;
         private Button btnQuitarMateria;
         private Button btnEditarMateria;

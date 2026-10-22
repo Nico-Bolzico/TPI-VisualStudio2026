@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -22,6 +22,9 @@ public partial class FormMaterias : Form
 
     private async void FormMaterias_Load(object sender, EventArgs e)
     {
+        Modificar.Enabled = ApiSession.TienePermiso("Materias", "Modificar");
+        btnBaja.Enabled = ApiSession.TienePermiso("Materias", "Baja");
+
         await CargarGrillaAsync();
     }
 
@@ -67,34 +70,6 @@ public partial class FormMaterias : Form
     {
         txtBusqueda.Text = string.Empty;
         await CargarGrillaAsync();
-    }
-
-    private async void btnAlta_Click(object sender, EventArgs e)
-    {
-        using var formEdit = new FormMateriaEdit();
-
-        if (formEdit.ShowDialog(this) == DialogResult.OK)
-        {
-            try
-            {
-                var response = await ApiSession.HttpClient.PostAsJsonAsync("materias", formEdit.Materia);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var error = await response.Content.ReadAsStringAsync();
-                    MessageBox.Show($"No se pudo dar de alta: {error}",
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                await CargarGrillaAsync();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al dar de alta: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
     }
 
     private async void btnModificar_Click(object sender, EventArgs e)
@@ -144,7 +119,16 @@ public partial class FormMaterias : Form
 
         try
         {
-            await ApiSession.HttpClient.DeleteAsync($"materias/{materia.Id}");
+            var response = await ApiSession.HttpClient.DeleteAsync($"materias/{materia.Id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                MessageBox.Show($"No se pudo eliminar: {error}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             await CargarGrillaAsync();
         }
         catch (Exception ex)

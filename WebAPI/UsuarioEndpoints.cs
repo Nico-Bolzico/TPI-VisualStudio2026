@@ -1,4 +1,4 @@
-﻿using Application.Services;
+using Application.Services;
 using DTOs;
 
 namespace WebAPI
@@ -19,7 +19,7 @@ namespace WebAPI
                 return Results.Ok(usuario);
             })
             .WithName("Login")
-            .Produces<UsuarioDTO>(StatusCodes.Status200OK)
+            .Produces<LoginResponseDTO>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .WithOpenApi();
         }

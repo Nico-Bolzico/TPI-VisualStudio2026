@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Net.Http.Json;
 using DTOs;
 
 namespace WinForms;
@@ -26,7 +27,6 @@ public partial class FormPlanEdit : Form
         this.Text = "Modificar plan";
 
         txtDescripcion.Text = planExistente.Descripcion;
-        nudIdEspecialidad.Value = planExistente.IdEspecialidad;
 
         // Se trabaja sobre copias: si el usuario cancela, el plan original queda intacto.
         foreach (var m in planExistente.Materias)
@@ -42,6 +42,27 @@ public partial class FormPlanEdit : Form
         }
 
         ConfigurarGrilla();
+    }
+
+    private async void FormPlanEdit_Load(object sender, EventArgs e)
+    {
+        try
+        {
+            var especialidades = await ApiSession.HttpClient.GetFromJsonAsync<List<EspecialidadDTO>>("especialidades") ?? new();
+            cmbEspecialidades.DataSource = especialidades;
+            cmbEspecialidades.DisplayMember = nameof(EspecialidadDTO.Descripcion);
+            cmbEspecialidades.ValueMember = nameof(EspecialidadDTO.Id);
+
+            if (Plan.IdEspecialidad > 0)
+            {
+                cmbEspecialidades.SelectedValue = Plan.IdEspecialidad;
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error al cargar especialidades: {ex.Message}",
+                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     private void ConfigurarGrilla()
@@ -120,9 +141,9 @@ public partial class FormPlanEdit : Form
             return;
         }
 
-        if (nudIdEspecialidad.Value <= 0)
+        if (cmbEspecialidades.SelectedValue is not int idEspecialidad || idEspecialidad <= 0)
         {
-            MessageBox.Show("El Id de especialidad debe ser mayor que 0.",
+            MessageBox.Show("Debe seleccionar una especialidad.",
                 "Dato inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             e.Cancel = true;
             return;
@@ -141,7 +162,7 @@ public partial class FormPlanEdit : Form
         }
 
         Plan.Descripcion = txtDescripcion.Text.Trim();
-        Plan.IdEspecialidad = (int)nudIdEspecialidad.Value;
+        Plan.IdEspecialidad = idEspecialidad;
         Plan.Materias = materias.ToList();
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -22,6 +22,10 @@ public partial class FormPersonas : Form
 
     private async void FormPersonas_Load(object sender, EventArgs e)
     {
+        btnAlta.Enabled = ApiSession.TienePermiso("Personas", "Alta");
+        Modificar.Enabled = ApiSession.TienePermiso("Personas", "Modificar");
+        btnBaja.Enabled = ApiSession.TienePermiso("Personas", "Baja");
+
         await CargarGrillaAsync();
     }
 
@@ -145,7 +149,16 @@ public partial class FormPersonas : Form
 
         try
         {
-            await ApiSession.HttpClient.DeleteAsync($"personas/{persona.Id}");
+            var response = await ApiSession.HttpClient.DeleteAsync($"personas/{persona.Id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                MessageBox.Show($"No se pudo eliminar: {error}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             await CargarGrillaAsync();
         }
         catch (Exception ex)

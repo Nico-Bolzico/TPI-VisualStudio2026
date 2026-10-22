@@ -113,83 +113,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<TPIContext>();
-    context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
     DbSeeder.Seed(context);
-
-    if (!context.Usuarios.Any())
-    {
-        var personaAdmin = new Domain.Model.Persona(
-            id: 0,
-            legajo: 1,
-            nombre: "Administrador",
-            apellido: "Sistema",
-            direccion: "Sin especificar",
-            email: "admin@academia.edu",
-            telefono: "Sin especificar",
-            fechaNacimiento: new DateTime(1990, 1, 1),
-            tipoPersona: Domain.Model.TipoPersona.Profesor,
-            idPlan: null);
-
-        context.Personas.Add(personaAdmin);
-        context.SaveChanges();
-
-        var passwordHash = Application.Services.PasswordHasher.Hash("admin123");
-        context.Usuarios.Add(new Domain.Model.Usuario(
-            id: 0,
-            nombreUsuario: "admin",
-            passwordHash: passwordHash,
-            habilitado: true,
-            cambiaClave: false,
-            idPersona: personaAdmin.Id));
-        context.SaveChanges();
-    }
-
-    if (!context.Modulos.Any())
-    {
-        var moduloPersonas = new Domain.Model.Modulo(0, "Personas", true);
-        var moduloMaterias = new Domain.Model.Modulo(0, "Materias", true);
-        var moduloPlanes = new Domain.Model.Modulo(0, "Planes", true);
-        var moduloEspecialidades = new Domain.Model.Modulo(0, "Especialidades", true);
-        var moduloComisiones = new Domain.Model.Modulo(0, "Comisiones", true);
-        var moduloCursos = new Domain.Model.Modulo(0, "Cursos", true);
-        var moduloInscripciones = new Domain.Model.Modulo(0, "Inscripciones", true);
-        var moduloDocentesCursos = new Domain.Model.Modulo(0, "DocentesCursos", true);
-        context.Modulos.AddRange(moduloPersonas, moduloMaterias, moduloPlanes, moduloEspecialidades, moduloComisiones, moduloCursos, moduloInscripciones, moduloDocentesCursos);
-        context.SaveChanges();
-
-        var admin = context.Usuarios.First(u => u.NombreUsuario == "admin");
-
-        context.ModulosUsuarios.AddRange(
-            new Domain.Model.ModuloUsuario(0, moduloPersonas.Id, admin.Id, true, true, true, true),
-            new Domain.Model.ModuloUsuario(0, moduloMaterias.Id, admin.Id, true, true, true, true),
-            new Domain.Model.ModuloUsuario(0, moduloPlanes.Id, admin.Id, true, true, true, true),
-            new Domain.Model.ModuloUsuario(0, moduloEspecialidades.Id, admin.Id, true, true, true, true),
-            new Domain.Model.ModuloUsuario(0, moduloComisiones.Id, admin.Id, true, true, true, true),
-            new Domain.Model.ModuloUsuario(0, moduloCursos.Id, admin.Id, true, true, true, true),
-            new Domain.Model.ModuloUsuario(0, moduloInscripciones.Id, admin.Id, true, true, true, true),
-            new Domain.Model.ModuloUsuario(0, moduloDocentesCursos.Id, admin.Id, true, true, true, true)
-        );
-        context.SaveChanges();
-    }
-
-    if (!context.Especialidades.Any())
-    {
-        context.Especialidades.Add(new Domain.Model.Especialidad(0, "Ingeniería en Sistemas de Información"));
-        context.SaveChanges();
-    }
-
-    if (!context.Comisiones.Any())
-    {
-        context.Comisiones.Add(new Domain.Model.Comision(0, "1K1", 1, 1));
-        context.SaveChanges();
-    }
-
-    if (!context.Cursos.Any())
-    {
-        context.Cursos.Add(new Domain.Model.Curso(0, 1, 1, 2026, 35));
-        context.SaveChanges();
-    }
 }
 
 // Configure the HTTP request pipeline.
