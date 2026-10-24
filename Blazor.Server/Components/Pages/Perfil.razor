@@ -1,0 +1,272 @@
+@page "/perfil"
+@inject APISession Session
+@inject NavigationManager Navigation
+
+<PageTitle>Mi perfil - TPI Academia</PageTitle>
+
+<div class="container py-3" style="max-width: 760px;">
+    <h3 class="mb-3">Mi perfil</h3>
+
+    @if (!string.IsNullOrEmpty(mensajeExito))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @mensajeExito
+            <button type="button" class="btn-close" @onclick="() => mensajeExito = null"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(mensajeError))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @mensajeError
+            <button type="button" class="btn-close" @onclick="() => mensajeError = null"></button>
+        </div>
+    }
+
+    @if (cargando)
+    {
+        <p class="text-muted py-3">Cargando perfil...</p>
+    }
+    else if (perfil != null)
+    {
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <!-- Datos que no se pueden modificar desde acá -->
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Usuario</label>
+                        <input type="text" class="form-control" value="@perfil.NombreUsuario" disabled />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Legajo</label>
+                        <input type="text" class="form-control" value="@perfil.Legajo" disabled />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Categoría</label>
+                        <input type="text" class="form-control" value="@perfil.TipoPersona" disabled />
+                    </div>
+                </div>
+
+                <hr />
+
+                <!-- Datos personales editables -->
+                <div class="row g-2">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label small fw-bold">Nombre</label>
+                        <input type="text" class="form-control" @bind="perfil.Nombre" />
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label small fw-bold">Apellido</label>
+                        <input type="text" class="form-control" @bind="perfil.Apellido" />
+                    </div>
+                    <div class="col-12 mb-2">
+                        <label class="form-label small fw-bold">Email</label>
+                        <input type="email" class="form-control" @bind="perfil.Email" />
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label small fw-bold">Dirección</label>
+                        <input type="text" class="form-control" @bind="perfil.Direccion" />
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label small fw-bold">Teléfono</label>
+                        <input type="text" class="form-control" @bind="perfil.Telefono" />
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label small fw-bold">Fecha de nacimiento</label>
+                        <input type="date" class="form-control" @bind="perfil.FechaNacimiento" />
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-end">
+                <button class="btn btn-primary" @onclick="GuardarAsync" disabled="@guardando">Guardar cambios</button>
+            </div>
+        </div>
+
+        <!-- Cambio de contraseña -->
+        <div class="card shadow-sm mt-3">
+            <div class="card-header fw-bold">Cambiar contraseña</div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(mensajeExitoPassword))
+                {
+                    <div class="alert alert-success py-2">@mensajeExitoPassword</div>
+                }
+                @if (!string.IsNullOrEmpty(mensajeErrorPassword))
+                {
+                    <div class="alert alert-danger py-2">@mensajeErrorPassword</div>
+                }
+
+                <div class="row g-2">
+                    <div class="col-12 mb-2">
+                        <label class="form-label small fw-bold">Contraseña actual</label>
+                        <input type="password" class="form-control" autocomplete="current-password" @bind="passwordActual" />
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label small fw-bold">Contraseña nueva (mín. 8 caracteres)</label>
+                        <input type="password" class="form-control" autocomplete="new-password" @bind="passwordNueva" />
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label small fw-bold">Repetir contraseña nueva</label>
+                        <input type="password" class="form-control" autocomplete="new-password" @bind="passwordConfirmar" />
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-end">
+                <button class="btn btn-outline-primary" @onclick="CambiarPasswordAsync" disabled="@cambiandoPassword">Cambiar contraseña</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private PerfilDTO? perfil;
+    private bool cargando = true;
+    private bool guardando = false;
+    private string? mensajeExito;
+    private string? mensajeError;
+
+    // Cambio de contraseña
+    private string passwordActual = string.Empty;
+    private string passwordNueva = string.Empty;
+    private string passwordConfirmar = string.Empty;
+    private bool cambiandoPassword = false;
+    private string? mensajeExitoPassword;
+    private string? mensajeErrorPassword;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.EstaAutenticado)
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        try
+        {
+            perfil = await Session.HttpClient.GetFromJsonAsync<PerfilDTO>("perfil");
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al cargar el perfil: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task CambiarPasswordAsync()
+    {
+        mensajeErrorPassword = null;
+        mensajeExitoPassword = null;
+
+        if (string.IsNullOrEmpty(passwordActual))
+        {
+            mensajeErrorPassword = "Ingrese su contraseña actual.";
+            return;
+        }
+
+        if (passwordNueva.Length < 8)
+        {
+            mensajeErrorPassword = "La contraseña nueva debe tener al menos 8 caracteres.";
+            return;
+        }
+
+        if (passwordNueva != passwordConfirmar)
+        {
+            mensajeErrorPassword = "Las contraseñas nuevas no coinciden.";
+            return;
+        }
+
+        try
+        {
+            cambiandoPassword = true;
+
+            var dto = new CambioPasswordDTO { PasswordActual = passwordActual, PasswordNueva = passwordNueva };
+            var response = await Session.HttpClient.PutAsJsonAsync("perfil/password", dto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                mensajeErrorPassword = await LeerErrorAsync(response);
+                return;
+            }
+
+            passwordActual = string.Empty;
+            passwordNueva = string.Empty;
+            passwordConfirmar = string.Empty;
+            mensajeExitoPassword = "Contraseña actualizada con éxito.";
+        }
+        catch (Exception ex)
+        {
+            mensajeErrorPassword = $"Error al cambiar la contraseña: {ex.Message}";
+        }
+        finally
+        {
+            cambiandoPassword = false;
+        }
+    }
+
+    // Extrae el mensaje del cuerpo { "error": "..." } que devuelve la API
+    private static async Task<string> LeerErrorAsync(HttpResponseMessage response)
+    {
+        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            return "La sesión expiró o no es válida. Cierre sesión y vuelva a ingresar.";
+
+        try
+        {
+            var cuerpo = await response.Content.ReadAsStringAsync();
+            using var doc = System.Text.Json.JsonDocument.Parse(cuerpo);
+            if (doc.RootElement.TryGetProperty("error", out var error) && error.ValueKind == System.Text.Json.JsonValueKind.String)
+                return error.GetString() ?? "Error desconocido.";
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            // cuerpo sin formato esperado: se muestra el mensaje genérico
+        }
+
+        return $"El servidor respondió {(int)response.StatusCode}.";
+    }
+
+    private async Task GuardarAsync()
+    {
+        if (perfil is null) return;
+
+        mensajeError = null;
+        mensajeExito = null;
+
+        if (string.IsNullOrWhiteSpace(perfil.Nombre) || string.IsNullOrWhiteSpace(perfil.Apellido))
+        {
+            mensajeError = "Nombre y Apellido son obligatorios.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(perfil.Email))
+        {
+            mensajeError = "El Email es obligatorio.";
+            return;
+        }
+
+        try
+        {
+            guardando = true;
+            var response = await Session.HttpClient.PutAsJsonAsync("perfil", perfil);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensajeError = $"No se pudo guardar: {error}";
+                return;
+            }
+
+            Session.ActualizarDatosPersonales(perfil.Nombre.Trim(), perfil.Apellido.Trim(), perfil.Email.Trim());
+            mensajeExito = "Perfil actualizado con éxito.";
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al guardar: {ex.Message}";
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+}

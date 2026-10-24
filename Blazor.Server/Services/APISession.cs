@@ -44,6 +44,18 @@ public class APISession
         OnChange?.Invoke();
     }
 
+    // Refresca los datos personales mostrados (navbar, inicio) después de editar el perfil
+    public void ActualizarDatosPersonales(string nombre, string apellido, string email)
+    {
+        if (UsuarioActual is null) return;
+
+        UsuarioActual.Nombre = nombre;
+        UsuarioActual.Apellido = apellido;
+        UsuarioActual.Email = email;
+
+        OnChange?.Invoke();
+    }
+
     public bool TienePermiso(string modulo, string accion)
     {
         var permiso = PermisosActuales.FirstOrDefault(p => p.Modulo.Equals(modulo, StringComparison.OrdinalIgnoreCase));

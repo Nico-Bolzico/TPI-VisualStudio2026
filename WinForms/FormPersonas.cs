@@ -82,7 +82,23 @@ public partial class FormPersonas : Form
         {
             try
             {
-                var response = await ApiSession.HttpClient.PostAsJsonAsync("personas", formEdit.Persona);
+                var p = formEdit.Persona;
+                var alta = new PersonaAltaDTO
+                {
+                    Legajo = p.Legajo,
+                    Nombre = p.Nombre,
+                    Apellido = p.Apellido,
+                    Direccion = p.Direccion,
+                    Email = p.Email,
+                    Telefono = p.Telefono,
+                    FechaNacimiento = p.FechaNacimiento,
+                    TipoPersona = p.TipoPersona,
+                    IdPlan = p.IdPlan,
+                    NombreUsuario = formEdit.NombreUsuario,
+                    Password = formEdit.Password
+                };
+
+                var response = await ApiSession.HttpClient.PostAsJsonAsync("personas", alta);
 
                 if (!response.IsSuccessStatusCode)
                 {

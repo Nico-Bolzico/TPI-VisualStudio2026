@@ -108,6 +108,9 @@
                 {
                     <div class="text-white-50 text-truncate small">@Session.UsuarioActual?.Nombre @Session.UsuarioActual?.Apellido</div>
                 }
+                <NavLink class="btn btn-outline-light btn-sm w-100 mt-2" href="perfil">
+                    Mi perfil
+                </NavLink>
                 <button class="btn btn-outline-light btn-sm w-100 mt-2" @onclick="CerrarSesion">
                     Cerrar Sesión
                 </button>

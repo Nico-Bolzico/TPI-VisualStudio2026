@@ -53,7 +53,7 @@ namespace WebAPI
             .RequireAuthorization("Personas.Consultar")
             .WithOpenApi();
 
-            app.MapPost("/personas", async (PersonaDTO dto, IPersonaService personaService) =>
+            app.MapPost("/personas", async (PersonaAltaDTO dto, IPersonaService personaService) =>
             {
                 try
                 {

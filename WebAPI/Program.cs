@@ -113,6 +113,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<TPIContext>();
+    context.Database.EnsureDeleted();
     context.Database.EnsureCreated();
     DbSeeder.Seed(context);
 }
@@ -142,5 +143,6 @@ app.MapCursoEndpoints();
 app.MapAlumnoInscripcionEndpoints();
 app.MapDocenteCursoEndpoints();
 app.MapUsuarioEndpoints();
+app.MapPerfilEndpoints();
 
 app.Run();

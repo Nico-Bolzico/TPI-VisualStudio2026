@@ -23,14 +23,24 @@ namespace Data
         {
             var persona = await context.Personas.FindAsync(id);
 
-            if (persona != null)
-            {
-                context.Personas.Remove(persona);
-                await context.SaveChangesAsync();
-                return true;
-            }
+            if (persona == null)
+                return false;
 
-            return false;
+            // Si la persona no se puede eliminar, la transaccion deshace todo.
+            await using var transaccion = await context.Database.BeginTransactionAsync();
+
+            var usuarios = await context.Usuarios.Where(u => u.IdPersona == id).ToListAsync();
+            foreach (var usuario in usuarios)
+            {
+                var permisos = await context.ModulosUsuarios.Where(mu => mu.IdUsuario == usuario.Id).ToListAsync();
+                context.ModulosUsuarios.RemoveRange(permisos);
+            }
+            context.Usuarios.RemoveRange(usuarios);
+            context.Personas.Remove(persona);
+
+            await context.SaveChangesAsync();
+            await transaccion.CommitAsync();
+            return true;
         }
 
         public async Task<Persona?> GetAsync(int id)

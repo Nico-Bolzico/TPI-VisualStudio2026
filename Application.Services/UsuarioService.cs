@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Data;
+using Domain.Model;
 using DTOs;
 
 namespace Application.Services
@@ -68,6 +69,80 @@ namespace Application.Services
                     PuedeConsultar = p.PuedeConsultar
                 }).ToList()
             };
+        }
+
+        public async Task<PerfilDTO?> GetPerfilAsync(int idUsuario)
+        {
+            var (usuario, persona) = await ObtenerCuentaAsync(idUsuario);
+            if (usuario == null || persona == null)
+                return null;
+
+            return new PerfilDTO
+            {
+                NombreUsuario = usuario.NombreUsuario,
+                Legajo = persona.Legajo,
+                TipoPersona = persona.TipoPersona.ToString(),
+                Nombre = persona.Nombre,
+                Apellido = persona.Apellido,
+                Direccion = persona.Direccion,
+                Email = persona.Email,
+                Telefono = persona.Telefono,
+                FechaNacimiento = persona.FechaNacimiento
+            };
+        }
+
+        // Solo se pueden cambiar los datos personales. Legajo, TipoPersona y Plan se conservan
+        // tal cual están: los define la facultad, no la propia persona.
+        public async Task<bool> UpdatePerfilAsync(int idUsuario, PerfilDTO dto)
+        {
+            var (usuario, existente) = await ObtenerCuentaAsync(idUsuario);
+            if (usuario == null || existente == null)
+                return false;
+
+            var actualizada = new Persona(existente.Id, existente.Legajo,
+                (dto.Nombre ?? string.Empty).Trim(),
+                (dto.Apellido ?? string.Empty).Trim(),
+                (dto.Direccion ?? string.Empty).Trim(),
+                (dto.Email ?? string.Empty).Trim(),
+                (dto.Telefono ?? string.Empty).Trim(),
+                dto.FechaNacimiento,
+                existente.TipoPersona,
+                existente.IdPlan);
+
+            return await personaRepository.UpdateAsync(actualizada);
+        }
+
+        public async Task<bool> CambiarPasswordAsync(int idUsuario, CambioPasswordDTO dto)
+        {
+            var usuario = await usuarioRepository.GetByIdAsync(idUsuario);
+            if (usuario == null || !usuario.Habilitado)
+                return false;
+
+            if (string.IsNullOrEmpty(dto.PasswordActual)
+                || !PasswordHasher.Verify(dto.PasswordActual, usuario.PasswordHash))
+            {
+                throw new ArgumentException("La contraseña actual no es correcta.");
+            }
+
+            PasswordPolicy.Validar(dto.PasswordNueva);
+
+            if (dto.PasswordNueva == dto.PasswordActual)
+                throw new ArgumentException("La contraseña nueva debe ser distinta de la actual.");
+
+            usuario.SetPasswordHash(PasswordHasher.Hash(dto.PasswordNueva));
+            usuario.SetCambiaClave(false);
+            await usuarioRepository.UpdateAsync(usuario);
+            return true;
+        }
+
+        private async Task<(Usuario? usuario, Persona? persona)> ObtenerCuentaAsync(int idUsuario)
+        {
+            var usuario = await usuarioRepository.GetByIdAsync(idUsuario);
+            if (usuario == null || !usuario.Habilitado)
+                return (null, null);
+
+            var persona = await personaRepository.GetAsync(usuario.IdPersona);
+            return (usuario, persona);
         }
     }
 }

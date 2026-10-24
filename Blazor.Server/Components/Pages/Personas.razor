@@ -172,6 +172,29 @@
                             <input type="number" class="form-control" @bind="personaActual.IdPlan" disabled="@(personaActual.TipoPersona != "Alumno")" />
                         </div>
                     </div>
+
+                    @if (!esModificacion)
+                    {
+                        <hr class="my-3" />
+                        <h6 class="text-secondary">Cuenta de acceso</h6>
+                        <p class="text-muted small mb-2">
+                            Se crea un usuario para esta persona con los permisos por defecto de un @personaActual.TipoPersona.
+                        </p>
+                        <div class="row g-2">
+                            <div class="col-12 mb-2">
+                                <label class="form-label small fw-bold">Nombre de usuario</label>
+                                <input type="text" class="form-control" autocomplete="off" @bind="nombreUsuario" />
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold">Contraseña (mín. 8 caracteres)</label>
+                                <input type="password" class="form-control" autocomplete="new-password" @bind="password" />
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold">Repetir contraseña</label>
+                                <input type="password" class="form-control" autocomplete="new-password" @bind="confirmarPassword" />
+                            </div>
+                        </div>
+                    }
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
@@ -192,6 +215,11 @@
     private string? mensajeExito;
     private string? mensajeError;
     private string? mensajeErrorModal;
+
+    // Cuenta de acceso (solo en el alta)
+    private string nombreUsuario = string.Empty;
+    private string password = string.Empty;
+    private string confirmarPassword = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -260,6 +288,9 @@
     {
         esModificacion = false;
         mensajeErrorModal = null;
+        nombreUsuario = string.Empty;
+        password = string.Empty;
+        confirmarPassword = string.Empty;
         personaActual = new PersonaDTO
         {
             FechaNacimiento = new DateTime(2000, 1, 1),
@@ -323,6 +354,27 @@
             return;
         }
 
+        if (!esModificacion)
+        {
+            if (string.IsNullOrWhiteSpace(nombreUsuario))
+            {
+                mensajeErrorModal = "El nombre de usuario es obligatorio.";
+                return;
+            }
+
+            if (password.Length < 8)
+            {
+                mensajeErrorModal = "La contraseña debe tener al menos 8 caracteres.";
+                return;
+            }
+
+            if (password != confirmarPassword)
+            {
+                mensajeErrorModal = "Las contraseñas no coinciden.";
+                return;
+            }
+        }
+
         try
         {
             HttpResponseMessage response;
@@ -333,7 +385,21 @@
             }
             else
             {
-                response = await Session.HttpClient.PostAsJsonAsync("personas", personaActual);
+                var alta = new PersonaAltaDTO
+                {
+                    Legajo = personaActual.Legajo,
+                    Nombre = personaActual.Nombre,
+                    Apellido = personaActual.Apellido,
+                    Direccion = personaActual.Direccion,
+                    Email = personaActual.Email,
+                    Telefono = personaActual.Telefono,
+                    FechaNacimiento = personaActual.FechaNacimiento,
+                    TipoPersona = personaActual.TipoPersona,
+                    IdPlan = personaActual.IdPlan,
+                    NombreUsuario = nombreUsuario.Trim(),
+                    Password = password
+                };
+                response = await Session.HttpClient.PostAsJsonAsync("personas", alta);
             }
 
             if (!response.IsSuccessStatusCode)
@@ -344,7 +410,11 @@
             }
 
             mostrarModal = false;
-            mensajeExito = esModificacion ? "Persona modificada con éxito." : "Persona agregada con éxito.";
+            password = string.Empty;
+            confirmarPassword = string.Empty;
+            mensajeExito = esModificacion
+                ? "Persona modificada con éxito."
+                : $"Persona agregada con éxito. Usuario creado: {nombreUsuario.Trim()}.";
             await CargarGrillaAsync();
         }
         catch (Exception ex)

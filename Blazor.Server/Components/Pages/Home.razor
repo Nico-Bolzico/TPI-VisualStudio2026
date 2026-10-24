@@ -21,6 +21,7 @@
                 </p>
             </div>
             <div>
+                <a href="perfil" class="btn btn-outline-primary btn-sm mt-2 mt-sm-0 me-1">Mi perfil</a>
                 <button class="btn btn-outline-danger btn-sm mt-2 mt-sm-0" @onclick="CerrarSesion">
                     Cerrar Sesión
                 </button>
@@ -156,11 +157,11 @@
                         <div class="alert alert-info py-2 small mb-3">
                             <div class="fw-bold mb-1">Credenciales de prueba del sistema:</div>
                             <div class="mb-1">
-                                <strong>Administrador:</strong> <code>admin</code> / <code>admin123</code><br />
-                                <span class="text-muted">(Control y gestión total de la facultad)</span>
+                                <strong>Admin (acceso completo):</strong> <code>lgomez</code> / <code>lgomez123</code><br />
+                                <span class="text-muted">(Gestión académica completa y calificación de notas)</span>
                             </div>
                             <div>
-                                <strong>Profesor:</strong> <code>profesor</code> / <code>profesor123</code><br />
+                                <strong>Profesor (acceso restringido):</strong> <code>cmartinez</code> / <code>cmartinez123</code><br />
                                 <span class="text-muted">(Consulta general y calificación de notas)</span>
                             </div>
                         </div>
@@ -168,7 +169,7 @@
                         <form @onsubmit="IngresarAsync">
                             <div class="mb-3">
                                 <label class="form-label fw-bold small">Nombre de Usuario</label>
-                                <input type="text" class="form-control" @bind="request.NombreUsuario" placeholder="Ej: admin" />
+                                <input type="text" class="form-control" @bind="request.NombreUsuario" placeholder="Ej: lgomez" />
                             </div>
 
                             <div class="mb-3">

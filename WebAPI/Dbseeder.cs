@@ -6,9 +6,9 @@ namespace WebAPI
 {
     // Carga los datos iniciales de la base.
     //
-    // Usuarios de prueba:
-    //   admin    / admin123     -> acceso total
-    //   profesor / profesor123  -> solo consulta, salvo Inscripciones
+    // Usuarios de prueba (ambos son profesores reales, no existe el rol "administrador"):
+    //   lgomez    / lgomez123     -> Laura Gómez: acceso completo a todos los módulos
+    //   cmartinez / cmartinez123  -> Carlos Martínez: permisos por defecto de Profesor (ver PermisosPorDefecto)
     public static class DbSeeder
     {
         public static void Seed(TPIContext context)
@@ -53,8 +53,6 @@ namespace WebAPI
             context.SaveChanges();
 
             // Personas (Docentes y Alumnos)
-            var personaAdmin = NuevaPersona(1, "Administrador", "Sistema", "admin@academia.edu",
-                new DateTime(1990, 1, 1), TipoPersona.Profesor, null);
             var personaProfesor = NuevaPersona(1001, "Laura", "Gómez", "laura.gomez@academia.edu",
                 new DateTime(1980, 5, 12), TipoPersona.Profesor, null);
             var personaProfesor2 = NuevaPersona(1002, "Carlos", "Martínez", "carlos.martinez@academia.edu",
@@ -81,7 +79,7 @@ namespace WebAPI
             var lucia = NuevaPersona(2010, "Lucía", "Herrera", "lucia.herrera@alumnos.academia.edu",
                 new DateTime(2004, 2, 14), TipoPersona.Alumno, plan.Id);
 
-            context.Personas.AddRange(personaAdmin, personaProfesor, personaProfesor2,
+            context.Personas.AddRange(personaProfesor, personaProfesor2,
                 juan, maria, lucas, sofia, mateo, valentina, joaquin, camila, tomas, lucia);
             context.SaveChanges();
 
@@ -108,11 +106,11 @@ namespace WebAPI
             context.SaveChanges();
 
             //  Usuarios
-            var admin = new Usuario(0, "admin", PasswordHasher.Hash("admin123"),
-                habilitado: true, cambiaClave: false, idPersona: personaAdmin.Id);
-            var profesor = new Usuario(0, "profesor", PasswordHasher.Hash("profesor123"),
+            var usuarioLaura = new Usuario(0, "lgomez", PasswordHasher.Hash("lgomez123"),
                 habilitado: true, cambiaClave: false, idPersona: personaProfesor.Id);
-            context.Usuarios.AddRange(admin, profesor);
+            var usuarioCarlos = new Usuario(0, "cmartinez", PasswordHasher.Hash("cmartinez123"),
+                habilitado: true, cambiaClave: false, idPersona: personaProfesor2.Id);
+            context.Usuarios.AddRange(usuarioLaura, usuarioCarlos);
             context.SaveChanges();
 
             // Módulos y permisos
@@ -127,13 +125,18 @@ namespace WebAPI
 
             foreach (var modulo in modulos)
             {
-                // admin: control total
+                // Laura Gómez: acceso completo
                 context.ModulosUsuarios.Add(
-                    new ModuloUsuario(0, modulo.Id, admin.Id, true, true, true, true));
+                    new ModuloUsuario(0, modulo.Id, usuarioLaura.Id, true, true, true, true));
 
-                bool puedeModificar = modulo.Descripcion == "Inscripciones";
-                context.ModulosUsuarios.Add(
-                    new ModuloUsuario(0, modulo.Id, profesor.Id, false, false, puedeModificar, true));
+                // Carlos Martínez: recibe los permisos por defecto de un Profesor (igual que una cuenta nueva)
+                var porDefecto = PermisosPorDefecto.Para(TipoPersona.Profesor)
+                    .FirstOrDefault(p => p.Modulo == modulo.Descripcion);
+                if (porDefecto != null)
+                {
+                    context.ModulosUsuarios.Add(new ModuloUsuario(0, modulo.Id, usuarioCarlos.Id,
+                        porDefecto.PuedeAlta, porDefecto.PuedeBaja, porDefecto.PuedeModificar, porDefecto.PuedeConsultar));
+                }
             }
             context.SaveChanges();
         }

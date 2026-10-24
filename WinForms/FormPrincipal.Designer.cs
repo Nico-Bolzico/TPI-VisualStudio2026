@@ -36,6 +36,7 @@ namespace WinForms
             comisionesToolStripMenuItem = new ToolStripMenuItem();
             cursosToolStripMenuItem = new ToolStripMenuItem();
             sesionToolStripMenuItem = new ToolStripMenuItem();
+            miPerfilToolStripMenuItem = new ToolStripMenuItem();
             cerrarSesionToolStripMenuItem = new ToolStripMenuItem();
             salirToolStripMenuItem = new ToolStripMenuItem();
             reportesToolStripMenuItem = new ToolStripMenuItem();
@@ -98,10 +99,17 @@ namespace WinForms
             // 
             // sesionToolStripMenuItem
             // 
-            sesionToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { cerrarSesionToolStripMenuItem, salirToolStripMenuItem });
+            sesionToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { miPerfilToolStripMenuItem, cerrarSesionToolStripMenuItem, salirToolStripMenuItem });
             sesionToolStripMenuItem.Name = "sesionToolStripMenuItem";
             sesionToolStripMenuItem.Size = new Size(66, 24);
             sesionToolStripMenuItem.Text = "Sesión";
+            // 
+            // miPerfilToolStripMenuItem
+            // 
+            miPerfilToolStripMenuItem.Name = "miPerfilToolStripMenuItem";
+            miPerfilToolStripMenuItem.Size = new Size(179, 26);
+            miPerfilToolStripMenuItem.Text = "Mi perfil";
+            miPerfilToolStripMenuItem.Click += miPerfilToolStripMenuItem_Click;
             // 
             // cerrarSesionToolStripMenuItem
             // 
@@ -161,6 +169,7 @@ namespace WinForms
         private ToolStripMenuItem personasToolStripMenuItem;
         private ToolStripMenuItem materiasToolStripMenuItem;
         private ToolStripMenuItem sesionToolStripMenuItem;
+        private ToolStripMenuItem miPerfilToolStripMenuItem;
         private ToolStripMenuItem cerrarSesionToolStripMenuItem;
         private ToolStripMenuItem salirToolStripMenuItem;
         private ToolStripMenuItem planesToolStripMenuItem;

@@ -85,11 +85,16 @@ namespace Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            modelBuilder.Entity<Usuario>()
-                .HasOne<Persona>()
-                .WithMany()
-                .HasForeignKey(u => u.IdPersona)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Usuario>(entity =>
+            {
+                entity.HasOne<Persona>()
+                      .WithMany()
+                      .HasForeignKey(u => u.IdPersona)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(u => u.NombreUsuario).HasMaxLength(50);
+                entity.HasIndex(u => u.NombreUsuario).IsUnique();
+                entity.HasIndex(u => u.IdPersona).IsUnique();
+            });
 
             modelBuilder.Entity<ModuloUsuario>(entity =>
             {

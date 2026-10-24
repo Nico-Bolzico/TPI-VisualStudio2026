@@ -15,11 +15,18 @@ public partial class FormPersonaEdit : Form
 {
     public PersonaDTO Persona { get; private set; }
 
+    // Cuenta de acceso: solo se completa en el ALTA
+    public string NombreUsuario { get; private set; } = string.Empty;
+    public string Password { get; private set; } = string.Empty;
+
+    private readonly bool esAlta;
+
     // Constructor para ALTA
     public FormPersonaEdit()
     {
         InitializeComponent();
         Persona = new PersonaDTO();
+        esAlta = true;
         this.Text = "Nueva persona";
     }
 
@@ -28,7 +35,17 @@ public partial class FormPersonaEdit : Form
     {
         InitializeComponent();
         Persona = personaExistente;
+        esAlta = false;
         this.Text = "Modificar persona";
+
+        // La cuenta se crea solo junto con la persona
+        lblCuenta.Visible = false;
+        label10.Visible = false;
+        txtNombreUsuario.Visible = false;
+        label11.Visible = false;
+        txtPassword.Visible = false;
+        label12.Visible = false;
+        txtConfirmarPassword.Visible = false;
 
         txtLegajo.Text = personaExistente.Legajo.ToString();
         txtNombre.Text = personaExistente.Nombre;
@@ -87,6 +104,36 @@ public partial class FormPersonaEdit : Form
                 "Datos incompletos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             e.Cancel = true;
             return;
+        }
+
+        if (esAlta)
+        {
+            if (string.IsNullOrWhiteSpace(txtNombreUsuario.Text))
+            {
+                MessageBox.Show("El nombre de usuario es obligatorio.",
+                    "Datos incompletos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                e.Cancel = true;
+                return;
+            }
+
+            if (txtPassword.Text.Length < 8)
+            {
+                MessageBox.Show("La contraseña debe tener al menos 8 caracteres.",
+                    "Dato inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                e.Cancel = true;
+                return;
+            }
+
+            if (txtPassword.Text != txtConfirmarPassword.Text)
+            {
+                MessageBox.Show("Las contraseñas no coinciden.",
+                    "Dato inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                e.Cancel = true;
+                return;
+            }
+
+            NombreUsuario = txtNombreUsuario.Text.Trim();
+            Password = txtPassword.Text;
         }
 
         bool esAlumno = cmbTipoPersona.SelectedItem?.ToString() == "Alumno";

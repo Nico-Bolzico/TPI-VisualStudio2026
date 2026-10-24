@@ -10,6 +10,13 @@ namespace Data
     public interface IUsuarioRepository
     {
         Task<Usuario?> GetByNombreUsuarioAsync(string nombreUsuario);
+        Task<Usuario?> GetByIdAsync(int id);
+        Task<bool> NombreUsuarioExistsAsync(string nombreUsuario);
         Task AddAsync(Usuario usuario);
+        Task UpdateAsync(Usuario usuario);
+
+        // Crea Persona + Usuario + permisos iniciales en una transacción
+        Task RegistrarConPersonaAsync(Persona persona, string nombreUsuario, string passwordHash,
+            IEnumerable<PermisoUsuarioInfo> permisosIniciales);
     }
 }

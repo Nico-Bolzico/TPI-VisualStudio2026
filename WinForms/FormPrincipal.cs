@@ -78,6 +78,12 @@ public partial class FormPrincipal : Form
         reporte.ShowDialog(this);
     }
 
+    private void miPerfilToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        using var formPerfil = new FormPerfil();
+        formPerfil.ShowDialog(this);
+    }
+
     private void cerrarSesionToolStripMenuItem_Click(object sender, EventArgs e)
     {
         DeseaCerrarSesion = true;

@@ -48,6 +48,13 @@ namespace WinForms
             label9 = new Label();
             btnAceptar = new Button();
             btnCancelar = new Button();
+            lblCuenta = new Label();
+            label10 = new Label();
+            txtNombreUsuario = new TextBox();
+            label11 = new Label();
+            txtPassword = new TextBox();
+            label12 = new Label();
+            txtConfirmarPassword = new TextBox();
             ((System.ComponentModel.ISupportInitialize)nudIdPlan).BeginInit();
             SuspendLayout();
             // 
@@ -220,11 +227,81 @@ namespace WinForms
             btnCancelar.Text = "Cancelar";
             btnCancelar.UseVisualStyleBackColor = true;
             // 
+            // lblCuenta
+            // 
+            lblCuenta.AutoSize = true;
+            lblCuenta.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblCuenta.Location = new Point(509, 9);
+            lblCuenta.Name = "lblCuenta";
+            lblCuenta.Size = new Size(121, 20);
+            lblCuenta.TabIndex = 20;
+            lblCuenta.Text = "Cuenta de acceso";
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Location = new Point(509, 42);
+            label10.Name = "label10";
+            label10.Size = new Size(120, 20);
+            label10.TabIndex = 21;
+            label10.Text = "Nombre de usuario";
+            // 
+            // txtNombreUsuario
+            // 
+            txtNombreUsuario.Location = new Point(509, 65);
+            txtNombreUsuario.MaxLength = 50;
+            txtNombreUsuario.Name = "txtNombreUsuario";
+            txtNombreUsuario.Size = new Size(203, 27);
+            txtNombreUsuario.TabIndex = 22;
+            // 
+            // label11
+            // 
+            label11.AutoSize = true;
+            label11.Location = new Point(509, 105);
+            label11.Name = "label11";
+            label11.Size = new Size(83, 20);
+            label11.TabIndex = 23;
+            label11.Text = "Contraseña";
+            // 
+            // txtPassword
+            // 
+            txtPassword.Location = new Point(509, 128);
+            txtPassword.MaxLength = 100;
+            txtPassword.Name = "txtPassword";
+            txtPassword.PasswordChar = '*';
+            txtPassword.Size = new Size(203, 27);
+            txtPassword.TabIndex = 24;
+            // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new Point(509, 168);
+            label12.Name = "label12";
+            label12.Size = new Size(128, 20);
+            label12.TabIndex = 25;
+            label12.Text = "Repetir contraseña";
+            // 
+            // txtConfirmarPassword
+            // 
+            txtConfirmarPassword.Location = new Point(509, 191);
+            txtConfirmarPassword.MaxLength = 100;
+            txtConfirmarPassword.Name = "txtConfirmarPassword";
+            txtConfirmarPassword.PasswordChar = '*';
+            txtConfirmarPassword.Size = new Size(203, 27);
+            txtConfirmarPassword.TabIndex = 26;
+            // 
             // FormPersonaEdit
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(txtConfirmarPassword);
+            Controls.Add(label12);
+            Controls.Add(txtPassword);
+            Controls.Add(label11);
+            Controls.Add(txtNombreUsuario);
+            Controls.Add(label10);
+            Controls.Add(lblCuenta);
             Controls.Add(btnCancelar);
             Controls.Add(btnAceptar);
             Controls.Add(label9);
@@ -276,5 +353,12 @@ namespace WinForms
         private Label label9;
         private Button btnAceptar;
         private Button btnCancelar;
+        private Label lblCuenta;
+        private Label label10;
+        private TextBox txtNombreUsuario;
+        private Label label11;
+        private TextBox txtPassword;
+        private Label label12;
+        private TextBox txtConfirmarPassword;
     }
 }
