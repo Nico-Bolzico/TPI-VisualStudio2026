@@ -92,7 +92,7 @@
             ClientSize = new Size(810, 579);
             Controls.Add(splitContainer1);
             Name = "GraficoInscriptosContraCupo";
-            Text = "Form1";
+            Text = "Graficos";
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();

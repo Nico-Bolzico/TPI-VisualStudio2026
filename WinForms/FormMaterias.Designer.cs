@@ -107,7 +107,7 @@
             Controls.Add(btnBuscar);
             Controls.Add(dgvMaterias);
             Name = "FormMaterias";
-            Text = "FormMaterias";
+            Text = "Materias";
             Load += FormMaterias_Load;
             ((System.ComponentModel.ISupportInitialize)dgvMaterias).EndInit();
             ResumeLayout(false);

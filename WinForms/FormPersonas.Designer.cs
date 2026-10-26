@@ -57,7 +57,7 @@
             btnBuscar.TabIndex = 1;
             btnBuscar.Text = "Buscar";
             btnBuscar.UseVisualStyleBackColor = true;
-            btnBuscar.Click += this.btnBuscar_Click;
+            btnBuscar.Click += btnBuscar_Click;
             // 
             // txtBusqueda
             // 
@@ -74,7 +74,7 @@
             btnMostrarTodos.TabIndex = 3;
             btnMostrarTodos.Text = "Mostrar Todos";
             btnMostrarTodos.UseVisualStyleBackColor = true;
-            btnMostrarTodos.Click += this.btnMostrarTodos_Click;
+            btnMostrarTodos.Click += btnMostrarTodos_Click;
             // 
             // btnAlta
             // 
@@ -84,7 +84,7 @@
             btnAlta.TabIndex = 4;
             btnAlta.Text = "Alta";
             btnAlta.UseVisualStyleBackColor = true;
-            btnAlta.Click += this.btnAlta_Click;
+            btnAlta.Click += btnAlta_Click;
             // 
             // Modificar
             // 
@@ -94,7 +94,7 @@
             Modificar.TabIndex = 5;
             Modificar.Text = "Modificar";
             Modificar.UseVisualStyleBackColor = true;
-            Modificar.Click += this.btnModificar_Click;
+            Modificar.Click += btnModificar_Click;
             // 
             // btnBaja
             // 
@@ -119,7 +119,7 @@
             Controls.Add(btnBuscar);
             Controls.Add(dgvPersonas);
             Name = "FormPersonas";
-            Text = "Form1";
+            Text = "Personas";
             Load += FormPersonas_Load;
             ((System.ComponentModel.ISupportInitialize)dgvPersonas).EndInit();
             ResumeLayout(false);

@@ -35,13 +35,13 @@ namespace WinForms
             planesToolStripMenuItem = new ToolStripMenuItem();
             comisionesToolStripMenuItem = new ToolStripMenuItem();
             cursosToolStripMenuItem = new ToolStripMenuItem();
+            reportesToolStripMenuItem = new ToolStripMenuItem();
+            reporteCursosPorCupoToolStripMenuItem = new ToolStripMenuItem();
+            reportePlanesDeEstudioToolStripMenuItem = new ToolStripMenuItem();
             sesionToolStripMenuItem = new ToolStripMenuItem();
             miPerfilToolStripMenuItem = new ToolStripMenuItem();
             cerrarSesionToolStripMenuItem = new ToolStripMenuItem();
             salirToolStripMenuItem = new ToolStripMenuItem();
-            reportesToolStripMenuItem = new ToolStripMenuItem();
-            reporteCursosPorCupoToolStripMenuItem = new ToolStripMenuItem();
-            reportePlanesDeEstudioToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -65,37 +65,58 @@ namespace WinForms
             // personasToolStripMenuItem
             // 
             personasToolStripMenuItem.Name = "personasToolStripMenuItem";
-            personasToolStripMenuItem.Size = new Size(169, 26);
+            personasToolStripMenuItem.Size = new Size(168, 26);
             personasToolStripMenuItem.Text = "Personas";
             personasToolStripMenuItem.Click += personasToolStripMenuItem_Click;
             // 
             // materiasToolStripMenuItem
             // 
             materiasToolStripMenuItem.Name = "materiasToolStripMenuItem";
-            materiasToolStripMenuItem.Size = new Size(169, 26);
+            materiasToolStripMenuItem.Size = new Size(168, 26);
             materiasToolStripMenuItem.Text = "Materias";
             materiasToolStripMenuItem.Click += materiasToolStripMenuItem_Click;
             // 
             // planesToolStripMenuItem
             // 
             planesToolStripMenuItem.Name = "planesToolStripMenuItem";
-            planesToolStripMenuItem.Size = new Size(169, 26);
+            planesToolStripMenuItem.Size = new Size(168, 26);
             planesToolStripMenuItem.Text = "Planes";
             planesToolStripMenuItem.Click += planesToolStripMenuItem_Click;
             // 
             // comisionesToolStripMenuItem
             // 
             comisionesToolStripMenuItem.Name = "comisionesToolStripMenuItem";
-            comisionesToolStripMenuItem.Size = new Size(169, 26);
+            comisionesToolStripMenuItem.Size = new Size(168, 26);
             comisionesToolStripMenuItem.Text = "Comisiones";
             comisionesToolStripMenuItem.Click += comisionesToolStripMenuItem_Click;
             // 
             // cursosToolStripMenuItem
             // 
             cursosToolStripMenuItem.Name = "cursosToolStripMenuItem";
-            cursosToolStripMenuItem.Size = new Size(169, 26);
+            cursosToolStripMenuItem.Size = new Size(168, 26);
             cursosToolStripMenuItem.Text = "Cursos";
             cursosToolStripMenuItem.Click += cursosToolStripMenuItem_Click;
+            // 
+            // reportesToolStripMenuItem
+            // 
+            reportesToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { reporteCursosPorCupoToolStripMenuItem, reportePlanesDeEstudioToolStripMenuItem });
+            reportesToolStripMenuItem.Name = "reportesToolStripMenuItem";
+            reportesToolStripMenuItem.Size = new Size(82, 24);
+            reportesToolStripMenuItem.Text = "Reportes";
+            // 
+            // reporteCursosPorCupoToolStripMenuItem
+            // 
+            reporteCursosPorCupoToolStripMenuItem.Name = "reporteCursosPorCupoToolStripMenuItem";
+            reporteCursosPorCupoToolStripMenuItem.Size = new Size(286, 26);
+            reporteCursosPorCupoToolStripMenuItem.Text = "Reporte de cursos (por cupo)";
+            reporteCursosPorCupoToolStripMenuItem.Click += reporteCursosPorCupoToolStripMenuItem_Click;
+            // 
+            // reportePlanesDeEstudioToolStripMenuItem
+            // 
+            reportePlanesDeEstudioToolStripMenuItem.Name = "reportePlanesDeEstudioToolStripMenuItem";
+            reportePlanesDeEstudioToolStripMenuItem.Size = new Size(286, 26);
+            reportePlanesDeEstudioToolStripMenuItem.Text = "Reporte de Planes de estudio";
+            reportePlanesDeEstudioToolStripMenuItem.Click += reportePlanesDeEstudioToolStripMenuItem_Click;
             // 
             // sesionToolStripMenuItem
             // 
@@ -125,27 +146,6 @@ namespace WinForms
             salirToolStripMenuItem.Text = "Salir";
             salirToolStripMenuItem.Click += salirToolStripMenuItem_Click;
             // 
-            // reportesToolStripMenuItem
-            // 
-            reportesToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { reporteCursosPorCupoToolStripMenuItem, reportePlanesDeEstudioToolStripMenuItem });
-            reportesToolStripMenuItem.Name = "reportesToolStripMenuItem";
-            reportesToolStripMenuItem.Size = new Size(82, 24);
-            reportesToolStripMenuItem.Text = "Reportes";
-            // 
-            // reporteCursosPorCupoToolStripMenuItem
-            // 
-            reporteCursosPorCupoToolStripMenuItem.Name = "reporteCursosPorCupoToolStripMenuItem";
-            reporteCursosPorCupoToolStripMenuItem.Size = new Size(295, 26);
-            reporteCursosPorCupoToolStripMenuItem.Text = "Reporte de cursos (por cupo)";
-            reporteCursosPorCupoToolStripMenuItem.Click += reporteCursosPorCupoToolStripMenuItem_Click;
-            // 
-            // reportePlanesDeEstudioToolStripMenuItem
-            // 
-            reportePlanesDeEstudioToolStripMenuItem.Name = "reportePlanesDeEstudioToolStripMenuItem";
-            reportePlanesDeEstudioToolStripMenuItem.Size = new Size(295, 26);
-            reportePlanesDeEstudioToolStripMenuItem.Text = "Reporte de Planes de estudio";
-            reportePlanesDeEstudioToolStripMenuItem.Click += reportePlanesDeEstudioToolStripMenuItem_Click;
-            // 
             // FormPrincipal
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -154,7 +154,7 @@ namespace WinForms
             Controls.Add(menuStrip1);
             MainMenuStrip = menuStrip1;
             Name = "FormPrincipal";
-            Text = "Form1";
+            Text = "Principal";
             Load += FormPrincipal_Load;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();

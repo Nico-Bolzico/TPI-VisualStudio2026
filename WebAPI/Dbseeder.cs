@@ -18,11 +18,19 @@ namespace WebAPI
 
             // Estructura académica
             // Se crea en orden (especialidad -> plan -> comisión -> cursos)
-            var especialidad = new Especialidad(0, "Ingeniería en Sistemas de Información");
-            context.Especialidades.Add(especialidad);
+            var especialidades = new[]
+            {
+            new Especialidad(0, "Ingeniería en Sistemas de Información"),
+            new Especialidad(0, "Ingeniería en Energía Eléctrica"),
+            new Especialidad(0, "Ingeniería Mecánica"),
+            new Especialidad(0, "Ingeniería Química"),
+            new Especialidad(0, "Ingeniería Civil")
+            };
+            context.Especialidades.AddRange(especialidades);
             context.SaveChanges();
 
-            var plan = new Plan(0, "Plan 2023", especialidad.Id);
+            var plan = new Plan(0, "Plan 2023 ISI", especialidades[0].Id);
+
             plan.AgregarMateria(Materia.NuevaParaPlan("Análisis Matemático I", 5, 160));
             plan.AgregarMateria(Materia.NuevaParaPlan("Álgebra y Geometría Analítica", 5, 160));
             plan.AgregarMateria(Materia.NuevaParaPlan("Algoritmos y Estructuras de Datos", 5, 160));
