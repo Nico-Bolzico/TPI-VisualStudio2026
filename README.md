@@ -1,4 +1,4 @@
-﻿# Sistema de Gestión Académica (SGA) — TPI Academia
+# Sistema de Gestión Académica (SGA) — TPI Academia
 
 > **Trabajo Práctico Integrador**  
 > **Materia:** Tecnologías de Desarrollo de Software IDE  
@@ -20,108 +20,105 @@
 
 El sistema elegido es el **Sistema de Gestión Académica (SGA)** propuesto por la cátedra.
 ```mermaid
-erDiagram
-    personas ||--o| usuarios : ""
-    usuarios ||--o{ modulos_usuarios : ""
-    modulos ||--o{ modulos_usuarios : ""
-    especialidades ||--o{ planes : ""
-    planes ||--o{ personas : ""
-    planes ||--o{ materias : ""
-    planes ||--o{ comisiones : ""
-    materias ||--o{ cursos : ""
-    comisiones ||--o{ cursos : ""
-    cursos ||--o{ docentes_cursos : ""
-    personas ||--o{ docentes_cursos : ""
-    cursos ||--o{ alumnos_inscripciones : ""
-    personas ||--o{ alumnos_inscripciones : ""
+classDiagram
+    Personas "1" -- "0..1" Usuarios
+    Usuarios "1" -- "0..N" ModulosUsuarios
+    Modulos "1" -- "0..N" ModulosUsuarios
+    Especialidades "1" -- "1..N" Planes
+    Planes "0..1" -- "0..N" Personas
+    Planes "1" -- "1..N" Materias
+    Planes "1" -- "0..N" Comisiones
+    Materias "1" -- "0..N" Cursos
+    Comisiones "1" -- "0..N" Cursos
+    Cursos "1" -- "0..N" DocentesCursos
+    Personas "1" -- "0..N" DocentesCursos
+    Cursos "1" -- "0..N" AlumnosInscripciones
+    Personas "1" -- "0..N" AlumnosInscripciones
 
-    usuarios {
-        int id_usuario
-        varchar nombre_usuario
-        varchar clave
-        bit habilitado
-        varchar nombre
-        varchar apellido
-        varchar email
-        bit cambia_clave
-        int id_persona
+    class Personas {
+        +int Id
+        +int Legajo
+        +string Nombre
+        +string Apellido
+        +string Direccion
+        +string Email
+        +string Telefono
+        +DateTime FechaNacimiento
+        +int TipoPersona
+        +int IdPlan
     }
 
-    modulos_usuarios {
-        int id_modulo_usuario
-        int id_modulo
-        int id_usuario
-        bit alta
-        bit baja
-        bit modificacion
-        bit consulta
+    class Usuarios {
+        +int Id
+        +string NombreUsuario
+        +string PasswordHash
+        +bool Habilitado
+        +bool CambiaClave
+        +int IdPersona
     }
 
-    modulos {
-        int id_modulo
-        varchar desc_modulo
-        varchar ejecuta
+    class ModulosUsuarios {
+        +int Id
+        +int IdModulo
+        +int IdUsuario
+        +bool PuedeAlta
+        +bool PuedeBaja
+        +bool PuedeModificar
+        +bool PuedeConsultar
     }
 
-    personas {
-        int id_persona
-        varchar nombre
-        varchar apellido
-        varchar direccion
-        varchar email
-        varchar telefono
-        datetime fecha_nac
-        int legajo
-        int tipo_persona
-        int id_plan
+    class Modulos {
+        +int Id
+        +string Descripcion
+        +bool Activo
     }
 
-    especialidades {
-        int id_especialidad
-        varchar desc_especialidad
+    class Especialidades {
+        +int Id
+        +string Descripcion
     }
 
-    planes {
-        int id_plan
-        varchar desc_plan
-        int id_especialidad
+    class Planes {
+        +int Id
+        +string Descripcion
+        +int IdEspecialidad
     }
 
-    comisiones {
-        int id_comision
-        varchar desc_comision
-        int anio_especialidad
-        int id_plan
+    class Comisiones {
+        +int Id
+        +string Descripcion
+        +int AnioEspecialidad
+        +int IdPlan
     }
 
-    materias {
-        int id_materia
-        varchar desc_materia
-        int hs_semanales
-        int hs_totales
-        int id_plan
+    class Materias {
+        +int Id
+        +string Descripcion
+        +int HsSemanales
+        +int HsTotales
+        +int IdPlan
     }
 
-    cursos {
-        int id_curso
-        int id_materia
-        int id_comision
-        int anio_calendario
-        int cupo
+    class Cursos {
+        +int Id
+        +int IdMateria
+        +int IdComision
+        +int AnioCalendario
+        +int Cupo
     }
 
-    docentes_cursos {
-        int id_dictado
-        int id_curso
-        int id_docente
-        int cargo
+    class DocentesCursos {
+        +int Id
+        +int IdCurso
+        +int IdDocente
+        +int Cargo
     }
 
-    alumnos_inscripciones {
-        int id_inscripcion
-        int id_alumno
-        int id_curso
-        varchar condicion
-        int nota
+    class AlumnosInscripciones {
+        +int Id
+        +int IdAlumno
+        +int IdCurso
+        +string Condicion
+        +int Nota
     }
 ```
