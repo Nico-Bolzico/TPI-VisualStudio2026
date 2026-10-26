@@ -35,6 +35,7 @@
             btnIngresar = new Button();
             lblError = new Label();
             usuarioPrecargado = new Label();
+            label3 = new Label();
             SuspendLayout();
             // 
             // label1
@@ -92,17 +93,27 @@
             // usuarioPrecargado
             // 
             usuarioPrecargado.AutoSize = true;
-            usuarioPrecargado.Location = new Point(213, 36);
+            usuarioPrecargado.Location = new Point(12, 18);
             usuarioPrecargado.Name = "usuarioPrecargado";
             usuarioPrecargado.Size = new Size(199, 140);
             usuarioPrecargado.TabIndex = 6;
             usuarioPrecargado.Text = "Admin (acceso completo)\r\nUsuario: lgomez\r\nContraseña: lgomez123\r\n\r\nProfesor (acceso restringido)\r\nUsuario: cmartinez\r\nContraseña: cmartinez123\r\n";
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(231, 18);
+            label3.Name = "label3";
+            label3.Size = new Size(196, 60);
+            label3.TabIndex = 7;
+            label3.Text = "Alumno (acceso restringido)\r\nUsuario: jperez\r\nContraseña: jperez123\r\n";
             // 
             // FormLogin
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(483, 451);
+            Controls.Add(label3);
             Controls.Add(usuarioPrecargado);
             Controls.Add(lblError);
             Controls.Add(btnIngresar);
@@ -125,5 +136,6 @@
         private Button btnIngresar;
         private Label lblError;
         private Label usuarioPrecargado;
+        private Label label3;
     }
 }

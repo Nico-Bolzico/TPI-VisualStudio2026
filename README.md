@@ -7,7 +7,7 @@
 
 ---
 
-## Integrantes — Grupo N° 4
+## Integrantes — Grupo N° 3
 
 | Integrante | Legajo | 
 | :--- | :---: | 

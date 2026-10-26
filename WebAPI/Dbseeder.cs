@@ -118,7 +118,9 @@ namespace WebAPI
                 habilitado: true, cambiaClave: false, idPersona: personaProfesor.Id);
             var usuarioCarlos = new Usuario(0, "cmartinez", PasswordHasher.Hash("cmartinez123"),
                 habilitado: true, cambiaClave: false, idPersona: personaProfesor2.Id);
-            context.Usuarios.AddRange(usuarioLaura, usuarioCarlos);
+            var usuarioJuan = new Usuario(0, "jperez", PasswordHasher.Hash("jperez123"),
+                habilitado: true, cambiaClave: false, idPersona: juan.Id);
+            context.Usuarios.AddRange(usuarioLaura, usuarioCarlos, usuarioJuan);
             context.SaveChanges();
 
             // Módulos y permisos
@@ -143,7 +145,16 @@ namespace WebAPI
                 if (porDefecto != null)
                 {
                     context.ModulosUsuarios.Add(new ModuloUsuario(0, modulo.Id, usuarioCarlos.Id,
-                        porDefecto.PuedeAlta, porDefecto.PuedeBaja, porDefecto.PuedeModificar, porDefecto.PuedeConsultar));
+                    porDefecto.PuedeAlta, porDefecto.PuedeBaja, porDefecto.PuedeModificar, porDefecto.PuedeConsultar));
+                }
+                // Juan Pérez (Alumno): recibe los permisos por defecto de un Alumno
+                var porDefectoAlumno = PermisosPorDefecto.Para(TipoPersona.Alumno)
+                   .FirstOrDefault(p => p.Modulo == modulo.Descripcion);
+                if (porDefectoAlumno != null)
+                {
+                    context.ModulosUsuarios.Add(new ModuloUsuario(0, modulo.Id, usuarioJuan.Id,
+                    porDefectoAlumno.PuedeAlta, porDefectoAlumno.PuedeBaja,
+                    porDefectoAlumno.PuedeModificar, porDefectoAlumno.PuedeConsultar));
                 }
             }
             context.SaveChanges();
