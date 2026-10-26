@@ -20,105 +20,105 @@
 
 El sistema elegido es el **Sistema de Gestión Académica (SGA)** propuesto por la cátedra.
 ```mermaid
-classDiagram
-    Personas "1" -- "0..1" Usuarios
-    Usuarios "1" -- "0..N" ModulosUsuarios
-    Modulos "1" -- "0..N" ModulosUsuarios
-    Especialidades "1" -- "1..N" Planes
-    Planes "0..1" -- "0..N" Personas
-    Planes "1" -- "1..N" Materias
-    Planes "1" -- "0..N" Comisiones
-    Materias "1" -- "0..N" Cursos
-    Comisiones "1" -- "0..N" Cursos
-    Cursos "1" -- "0..N" DocentesCursos
-    Personas "1" -- "0..N" DocentesCursos
-    Cursos "1" -- "0..N" AlumnosInscripciones
-    Personas "1" -- "0..N" AlumnosInscripciones
+erDiagram
+    Personas ||--o| Usuarios : ""
+    Usuarios ||--o{ ModulosUsuarios : ""
+    Modulos ||--o{ ModulosUsuarios : ""
+    Especialidades ||--o{ Planes : ""
+    Planes ||--o{ Personas : ""
+    Planes ||--|{ Materias : ""
+    Planes ||--o{ Comisiones : ""
+    Materias ||--o{ Cursos : ""
+    Comisiones ||--o{ Cursos : ""
+    Cursos ||--o{ DocentesCursos : ""
+    Personas ||--o{ DocentesCursos : ""
+    Cursos ||--o{ AlumnosInscripciones : ""
+    Personas ||--o{ AlumnosInscripciones : ""
 
-    class Personas {
-        +int Id
-        +int Legajo
-        +string Nombre
-        +string Apellido
-        +string Direccion
-        +string Email
-        +string Telefono
-        +DateTime FechaNacimiento
-        +int TipoPersona
-        +int IdPlan
+    Personas {
+        int Id PK
+        int Legajo
+        string Nombre
+        string Apellido
+        string Direccion
+        string Email
+        string Telefono
+        DateTime FechaNacimiento
+        int TipoPersona
+        int IdPlan FK
     }
 
-    class Usuarios {
-        +int Id
-        +string NombreUsuario
-        +string PasswordHash
-        +bool Habilitado
-        +bool CambiaClave
-        +int IdPersona
+    Usuarios {
+        int Id PK
+        string NombreUsuario
+        string PasswordHash
+        bool Habilitado
+        bool CambiaClave
+        int IdPersona FK
     }
 
-    class ModulosUsuarios {
-        +int Id
-        +int IdModulo
-        +int IdUsuario
-        +bool PuedeAlta
-        +bool PuedeBaja
-        +bool PuedeModificar
-        +bool PuedeConsultar
+    ModulosUsuarios {
+        int Id PK
+        int IdModulo FK
+        int IdUsuario FK
+        bool PuedeAlta
+        bool PuedeBaja
+        bool PuedeModificar
+        bool PuedeConsultar
     }
 
-    class Modulos {
-        +int Id
-        +string Descripcion
-        +bool Activo
+    Modulos {
+        int Id PK
+        string Descripcion
+        bool Activo
     }
 
-    class Especialidades {
-        +int Id
-        +string Descripcion
+    Especialidades {
+        int Id PK
+        string Descripcion
     }
 
-    class Planes {
-        +int Id
-        +string Descripcion
-        +int IdEspecialidad
+    Planes {
+        int Id PK
+        string Descripcion
+        int IdEspecialidad FK
     }
 
-    class Comisiones {
-        +int Id
-        +string Descripcion
-        +int AnioEspecialidad
-        +int IdPlan
+    Comisiones {
+        int Id PK
+        string Descripcion
+        int AnioEspecialidad
+        int IdPlan FK
     }
 
-    class Materias {
-        +int Id
-        +string Descripcion
-        +int HsSemanales
-        +int HsTotales
-        +int IdPlan
+    Materias {
+        int Id PK
+        string Descripcion
+        int HsSemanales
+        int HsTotales
+        int IdPlan FK
     }
 
-    class Cursos {
-        +int Id
-        +int IdMateria
-        +int IdComision
-        +int AnioCalendario
-        +int Cupo
+    Cursos {
+        int Id PK
+        int IdMateria FK
+        int IdComision FK
+        int AnioCalendario
+        int Cupo
     }
 
-    class DocentesCursos {
-        +int Id
-        +int IdCurso
-        +int IdDocente
-        +int Cargo
+    DocentesCursos {
+        int Id PK
+        int IdCurso FK
+        int IdDocente FK
+        int Cargo
     }
 
-    class AlumnosInscripciones {
-        +int Id
-        +int IdAlumno
-        +int IdCurso
-        +string Condicion
-        +int Nota
+    AlumnosInscripciones {
+        int Id PK
+        int IdAlumno FK
+        int IdCurso FK
+        string Condicion
+        int Nota
     }
 ```
